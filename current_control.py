@@ -8,9 +8,15 @@ coils = {'x_coil': 1.75,
          }
 
 initial_magnetic_field = {'x_axis': 10 ** -7,
-                          'y_axis': 10 ** -7,
+                          'y_axis': 6.4*10**-6,
                           'z_axis': 10 ** -7
                           }
+
+axis_current = {'current_axis_x' : 1,
+                'current_axis_y' : 1,
+                'current_axis_z' : 1
+                }
+
 
 wire_turns = 50
 free_space_permeability = 1.2566 * 10 ** (-6)
@@ -45,5 +51,60 @@ def calculate_current(magnetic_field_commanded, axis):
 
     return current
 
+def overload_control(calculated_current):
 
-print(calculate_current(-4*10**(-7),'y'))
+    if calculated_current > 3:
+        current = 3
+    else:
+        current = calculated_current
+    return current
+
+# When operation_mode = 1 user can change magnetic field's rate, each axis produces the same magnetic field.
+# When operation mode = 2 user can adjust the magnetic field in each axis individually
+def mode(operation_mode):
+
+    if operation_mode == 1:
+        print("Choose magnetic field's density:")
+        magnetic_field_density = float(input())
+        axis_magnetic_field = (1/np.sqrt(3))*magnetic_field_density
+
+        current = calculate_current(axis_magnetic_field,'x')
+        current = overload_control(current)
+        axis_current['current_axis_x'] = current
+
+        current = calculate_current(axis_magnetic_field, 'y')
+        current = overload_control(current)
+        axis_current['current_axis_y'] = current
+
+        current = calculate_current(axis_magnetic_field, 'z')
+        current = overload_control(current)
+        axis_current['current_axis_z'] = current
+
+    elif operation_mode == 2 :
+
+        print("Choose magnetic field's density in x axis:")
+        magnetic_field_density_x = float(input())
+
+        current = calculate_current(magnetic_field_density_x, 'x')
+        current = overload_control(current)
+        axis_current['current_axis_x'] = current
+
+        print("Choose magnetic field's density in y axis:")
+        magnetic_field_density_y = float(input())
+        current = calculate_current(magnetic_field_density_y, 'y')
+        current = overload_control(current)
+        axis_current['current_axis_y'] = current
+
+        print("Choose magnetic field's density in z axis:")
+        magnetic_field_density_z = float(input())
+        current = calculate_current(magnetic_field_density_z, 'z')
+        current = overload_control(current)
+        axis_current['current_axis_z'] = current
+
+        magnetic_field_density = np.sqrt(magnetic_field_density_x**2+magnetic_field_density_y**2+magnetic_field_density_z**2)
+        print(magnetic_field_density)
+
+
+
+mode(2)
+print(axis_current)
