@@ -17,6 +17,11 @@ axis_current = {'current_axis_x' : 1,
                 'current_axis_z' : 1
                 }
 
+PSU_ports = {'DP712': ['/dev/ttyUSB0', 'CH1'],
+             'SPD3303C_CH1': ['/dev/ttyUSB0', 'CH2'],
+             'SPD3303C_CH2': ['/dev/ttyUSB0', 'CH2']
+             }
+
 
 wire_turns = 50
 free_space_permeability = 1.2566 * 10 ** (-6)
@@ -104,7 +109,19 @@ def mode(operation_mode):
         magnetic_field_density = np.sqrt(magnetic_field_density_x**2+magnetic_field_density_y**2+magnetic_field_density_z**2)
         print(magnetic_field_density)
 
+voltage = 30
 
+def command_PSU_current(PSU_name,current):
 
-mode(2)
-print(axis_current)
+    PSU_used = PSU(PSU_ports[PSU_name][0],PSU_ports[PSU_name][1])
+    PSU_used.set_current(current=current)
+
+def initialize_PSUs():
+
+    DP712 = PSU(PSU_ports['DP712'][0],PSU_ports['DP712'][1])
+    SPD3303C_CH1 = PSU(PSU_ports['SPD3303C_CH1'][0],PSU_ports['SPD3303C_CH1'][1])
+    SPD3303C_CH2 = PSU(PSU_ports['SPD3303C_CH2'][0], PSU_ports['SPD3303C_CH2'][1])
+
+    DP712.set_voltage_and_current(30,0)
+    SPD3303C_CH1.set_voltage_and_current(30,0)
+    SPD3303C_CH2.set_voltage_and_current(30,0)
