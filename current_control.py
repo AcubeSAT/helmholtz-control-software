@@ -8,30 +8,37 @@ coils = {'x_coil': 1.75,
          }
 
 initial_magnetic_field = {'x_axis': 10 ** -7,
-                          'y_axis': 6.4*10**-6,
+                          'y_axis': 6.4 * 10 ** -6,
                           'z_axis': 10 ** -7
                           }
 
-axis_current = {'current_axis_x' : 1,
-                'current_axis_y' : 1,
-                'current_axis_z' : 1
+axis_current = {'current_axis_x': 1,
+                'current_axis_y': 1,
+                'current_axis_z': 1
                 }
 
-PSU_ports = {'DP712': ['/dev/ttyUSB0', 'CH1'],
-             'SPD3303C_CH1': ['/dev/ttyUSB0', 'CH2'],
-             'SPD3303C_CH2': ['/dev/ttyUSB0', 'CH2']
+PSU_ports = {'PSU_x': np.array(['/dev/ttyUSB0', 'CH1']),
+             'PSU_y': np.array(['/dev/ttyUSB0', 'CH2']),
+             'PSU_z': np.array(['/dev/ttyUSB0', 'CH2'])
              }
-
 
 wire_turns = 50
 free_space_permeability = 1.2566 * 10 ** (-6)
 beta = 0.5445
 
+"""
+    Calculates current based on the magnetic field user commands.  
+
+    Args:
+        commanded_magnetic_field: the magnetic field user wants to be applied
+        axis: the axis the current is commanded
+
+    Returns: the current that needs to be applied
+    """
 
 
 def calculate_current(commanded_magnetic_field, axis):
-
-    if axis == 'x' :
+    if axis == 'x':
         length = coils['x_coil']
         initial_field = initial_magnetic_field['x_axis']
     elif axis == 'y':
@@ -43,28 +50,57 @@ def calculate_current(commanded_magnetic_field, axis):
     else:
         return 0
 
-    current = ((commanded_magnetic_field - initial_field)*np.pi*length)/(2*free_space_permeability*wire_turns)*((1+beta**2)*np.sqrt(2+beta**2))/2
+    current = ((commanded_magnetic_field - initial_field) * np.pi * length) / (
+                2 * free_space_permeability * wire_turns) * ((1 + beta ** 2) * np.sqrt(2 + beta ** 2)) / 2
 
     return current
 
-def overload_control(calculated_current):
 
+"""
+    Used as a protection in order not to stress PSUs over their limit. If a current value greater 
+    than 3A is commanded then the applied current is equal to 3A
+
+    Args:
+        calculated_current: the current that will be checked
+        
+
+    Returns: The applied current
+    """
+
+
+def overload_control(calculated_current):
     if calculated_current > 3:
         current = 3
     else:
         current = calculated_current
+
     return current
+
+
+"""
+   Description
+   User can decide either to command the magnetic flux density of the whole homogeneous area (each axis 
+   has the same magnetic field) or the magnetic field for each axis separately. Function changes the values
+   in the axis_current dictionary
+
+   Args:
+       operation_mode: this argument has to values 0 and 1. 
+       If operation_mode == 0, user can choose the norm of the magnetic field to be applied
+       in the center of the coil. Each axis has the same magnetic field. 
+       If operation_mode == 1, user can define the current for each axis separately.  
+      
+   """
+
 
 # When operation_mode = 1 user can change magnetic field's rate, each axis produces the same magnetic field.
 # When operation mode = 2 user can adjust the magnetic field in each axis individually
 def mode(operation_mode):
-
-    if operation_mode == 1:
+    if operation_mode == 0:
         print("Choose magnetic field's density:")
         magnetic_field_density = float(input())
-        axis_magnetic_field = (1/np.sqrt(3))*magnetic_field_density
+        axis_magnetic_field = (1 / np.sqrt(3)) * magnetic_field_density
 
-        current = calculate_current(axis_magnetic_field,'x')
+        current = calculate_current(axis_magnetic_field, 'x')
         current = overload_control(current)
         axis_current['current_axis_x'] = current
 
@@ -76,7 +112,7 @@ def mode(operation_mode):
         current = overload_control(current)
         axis_current['current_axis_z'] = current
 
-    elif operation_mode == 2 :
+    elif operation_mode == 1:
 
         print("Choose magnetic field's density in x axis:")
         magnetic_field_density_x = float(input())
@@ -97,25 +133,40 @@ def mode(operation_mode):
         current = overload_control(current)
         axis_current['current_axis_z'] = current
 
-        magnetic_field_density = np.sqrt(magnetic_field_density_x**2+magnetic_field_density_y**2+magnetic_field_density_z**2)
+        magnetic_field_density = np.sqrt(
+            magnetic_field_density_x ** 2 + magnetic_field_density_y ** 2 + magnetic_field_density_z ** 2)
         print(magnetic_field_density)
 
-voltage = 30
 
-def command_PSU_current(PSU_name,current):
+PSU_x = PSU(PSU_ports['PSU_x'][0], PSU_ports['PSU_x'][1])
+PSU_y = PSU(PSU_ports['PSU_y'][0], PSU_ports['PSU_y'][1])
+PSU_z = PSU(PSU_ports['PSU_z'][0], PSU_ports['PSU_z'][1])
 
-    PSU_used = PSU(PSU_ports[PSU_name][0],PSU_ports[PSU_name][1])
-    PSU_used.set_current(current=current)
+"""
+   Changes PSUs' current to commanded vlaue.
 
-def initialize_PSUs():
+   Args:
+       PSU: The power supply unit that has its current value changed
+       current: the commanded current
 
-    DP712 = PSU(PSU_ports['DP712'][0],PSU_ports['DP712'][1])
-    SPD3303C_CH1 = PSU(PSU_ports['SPD3303C_CH1'][0],PSU_ports['SPD3303C_CH1'][1])
-    SPD3303C_CH2 = PSU(PSU_ports['SPD3303C_CH2'][0], PSU_ports['SPD3303C_CH2'][1])
-
-    DP712.set_voltage_and_current(30,0)
-    SPD3303C_CH1.set_voltage_and_current(30,0)
-    SPD3303C_CH2.set_voltage_and_current(30,0)
+   """
 
 
+def command_PSU_current(PSU, current):
+    PSU.set_current(current=current)
 
+
+"""
+   Used to initialize PSUs at the start of the operation. Voltage is set to maximum (30V) and
+   current is set to 0 in order to have the magnetic field in the Helmholtz Cage unaffected.
+
+   Args:
+       PSU_(x,y,z): passes the PSU object for each axis (x,y,z) respectively
+
+   """
+
+
+def initialize_PSUs(PSU_x, PSU_y, PSU_z):
+    PSU_x.set_voltage_and_current(30, 0)
+    PSU_y.set_voltage_and_current(30, 0)
+    PSU_z.set_voltage_and_current(30, 0)
