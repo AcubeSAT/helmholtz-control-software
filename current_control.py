@@ -58,17 +58,7 @@ class PID:
         return self.current
 
 
-# def initial_state():
-    # to be changed, get initial field measurements from magnetometer
-
-    # initial_magnetic_field = { 'x_axis' : 10**-7,
-    #                            'y_axis': 10 ** -7,
-    #                             'z_axis' : 10**-7
-    #                            }
-
-def calculate_current(magnetic_field_commanded, axis):
-
-    # initial_state()
+def calculate_current(commanded_magnetic_field, axis):
 
     if axis == 'x' :
         length = coils['x_coil']
@@ -82,7 +72,7 @@ def calculate_current(magnetic_field_commanded, axis):
     else:
         return 0
 
-    current = ((magnetic_field_commanded - initial_field)*np.pi*length)/(2*free_space_permeability*wire_turns)*((1+beta**2)*np.sqrt(2+beta**2))/2
+    current = ((commanded_magnetic_field - initial_field)*np.pi*length)/(2*free_space_permeability*wire_turns)*((1+beta**2)*np.sqrt(2+beta**2))/2
 
     return current
 
@@ -159,3 +149,4 @@ def initialize_PSUs():
 PID_x = PID()
 PID_y = PID()
 PID_z = PID()
+
