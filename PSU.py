@@ -67,11 +67,6 @@ class PSU:
         return self.visa_device.query(command.decode('utf-8'), delay=0.01)
 
     def measure_voltage(self):
-        """
-        Measures the voltage at the ends of the PSU.
-        Returns: the measured voltage
-
-        """
         command = ':MEAS:VOLT?'
 
         self.device.write(command)
