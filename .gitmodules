@@ -1,0 +1,3 @@
+[submodule "magnetometer/magnetometer-calibration"]
+	path = magnetometer/magnetometer-calibration
+	url = https://gitlab.com/acubesat/adcs/sensor-noise-modeling/magnetometer-calibration
