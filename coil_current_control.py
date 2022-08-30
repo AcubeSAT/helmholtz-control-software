@@ -4,7 +4,7 @@ import helmholtz_constants
 from scipy import constants
 
 
-class current_control:
+class coil_current_control:
 
     def __init__(self, axis, desired_magnetic_field):
         self.axis = axis
@@ -13,6 +13,7 @@ class current_control:
         self.initial_magnetic_field = helmholtz_constants.initial_magnetic_field[axis]
         self.desired_magnetic_field = desired_magnetic_field
         self.axis_PSU = PSU(helmholtz_constants.PSU_ports[axis][0], helmholtz_constants.PSU_ports[axis][1])
+        self.sign
 
     def initialize_PSU(self):
         """
@@ -35,12 +36,12 @@ class current_control:
                 2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
                                (1 + helmholtz_constants.beta ** 2) * np.sqrt(2 + helmholtz_constants.beta ** 2)) / 2
 
-        assert self.current <= 3, "Current above max value"
+        assert abs(self.current) <= 3, "Current above max value"
 
     def command_PSU_current(self):
         """
            Changes PSUs' current to commanded vlaue.
-           """
+        """
 
-        self.axis_PSU.set_current(self.current)
+        self.axis_PSU.set_current(abs(self.current))
 
