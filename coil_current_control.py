@@ -13,7 +13,6 @@ class coil_current_control:
         self.initial_magnetic_field = helmholtz_constants.initial_magnetic_field[axis]
         self.desired_magnetic_field = desired_magnetic_field
         self.axis_PSU = PSU(helmholtz_constants.PSU_ports[axis][0], helmholtz_constants.PSU_ports[axis][1])
-        self.sign
 
     def initialize_PSU(self):
         """
