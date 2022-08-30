@@ -1,13 +1,13 @@
 import numpy as np
 
-coils = {'x_coil': 1.75,
-         'y_coil': 1.70,
-         'z_coil': 1.65
+coils = {'x': 1.75,
+         'y': 1.70,
+         'z': 1.65
          }
 
-initial_magnetic_field = {'x_axis': 10 ** -7,
-                          'y_axis': 6.4 * 10 ** -6,
-                          'z_axis': 10 ** -7
+initial_magnetic_field = {'x': 10 ** -7,
+                          'y': 6.4 * 10 ** -6,
+                          'z': 10 ** -7
                           }
 
 axis_current = {'current_axis_x': 1,
