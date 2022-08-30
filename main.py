@@ -1,4 +1,4 @@
-import PSU
+from PSU import PSU
 import time
 
 voltage_wanted = [1.0000, 1.1987, 1.3894, 1.5646, 1.7174, 1.8415, 1.9320, 1.9854, 1.9996, 1.9738, 1.9093, 1.8085,
@@ -11,7 +11,7 @@ time_to_sleep = 1/(frequency*len(voltage_wanted))
 
 if __name__ == "__main__":
     trofodotiko = PSU()
-    device = PSU(model='SPD3303C')
+    psu = PSU(model='SPD3303C')
 
     current_values = [0, 0.2, 0.4, 0.6, 0.8, 1]
     volts_values = [0, 2, 4, 6, 8, 10]
@@ -21,15 +21,13 @@ if __name__ == "__main__":
             time.sleep(time_to_sleep)
 
         for current_value, volts_value in zip(current_values, volts_values):
-            device.set_channel(channel='CH1')
-            device.set_current(current=current_value)
+            psu.set_channel(channel='CH1')
+            psu.set_current(current=current_value)
             time.sleep(0.1)
-            device.set_voltage(voltage=volts_value)
+            psu.set_voltage(voltage=volts_value)
             time.sleep(0.5)
-            device.set_channel(channel='CH2')
-            device.set_current(current=current_value)
+            psu.set_channel(channel='CH2')
+            psu.set_current(current=current_value)
             time.sleep(0.1)
-            device.set_voltage(voltage=volts_value)
+            psu.set_voltage(voltage=volts_value)
             time.sleep(0.5)
-            print(device.measure_value('voltage'))
-            print(device.measure_value('current'))
