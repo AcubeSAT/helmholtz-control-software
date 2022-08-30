@@ -10,9 +10,9 @@ initial_magnetic_field = {'x': 10 ** -7,
                           'z': 10 ** -7
                           }
 
-axis_current = {'current_axis_x': 1,
-                'current_axis_y': 1,
-                'current_axis_z': 1
+axis_current = {'x': 1,
+                'y': 1,
+                'z': 1
                 }
 
 PSU_ports = {'PSU_x': np.array(['/dev/ttyUSB0', 'CH1']),
