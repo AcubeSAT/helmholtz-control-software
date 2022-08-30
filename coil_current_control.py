@@ -22,7 +22,7 @@ class coil_current_control:
            the magnetic field in the Helmholtz Cage unaffected.
 
        """
-        self.axis_PSU.set_voltage_and_current(30, 0)
+        self.axis_PSU.set_voltage_and_current(helmholtz_constants.PSU_max_voltage, 0)
 
     def initial_current(self):
         """
@@ -36,7 +36,7 @@ class coil_current_control:
                 2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
                                (1 + helmholtz_constants.beta ** 2) * np.sqrt(2 + helmholtz_constants.beta ** 2)) / 2
 
-        assert abs(self.current) <= 3, "Current above max value"
+        assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
     def command_PSU_current(self):
         """
