@@ -31,7 +31,7 @@ class PSU:
         assert voltage <= self.max_voltage
         assert current <= self.max_current
 
-        command = (self.channel + ',' + str(voltage) + ',' + str(current))
+        command = (':APPLy ' + self.channel + ',' + str(voltage) + ',' + str(current))
         self.device.write(command)
 
     def set_voltage(self, voltage):

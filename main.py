@@ -11,23 +11,7 @@ time_to_sleep = 1/(frequency*len(voltage_wanted))
 
 if __name__ == "__main__":
     trofodotiko = PSU()
-    psu = PSU(model='SPD3303C')
-
-    current_values = [0, 0.2, 0.4, 0.6, 0.8, 1]
-    volts_values = [0, 2, 4, 6, 8, 10]
     while 1:
         for voltage in voltage_wanted:
             trofodotiko.set_voltage_and_current(voltage, 0.1)
             time.sleep(time_to_sleep)
-
-        for current_value, volts_value in zip(current_values, volts_values):
-            psu.set_channel(channel='CH1')
-            psu.set_current(current=current_value)
-            time.sleep(0.1)
-            psu.set_voltage(voltage=volts_value)
-            time.sleep(0.5)
-            psu.set_channel(channel='CH2')
-            psu.set_current(current=current_value)
-            time.sleep(0.1)
-            psu.set_voltage(voltage=volts_value)
-            time.sleep(0.5)
