@@ -15,12 +15,10 @@ axis_current = {'x': 1,
                 'z': 1
                 }
 
-PSU_ports = {'x': np.array(['/dev/ttyUSB0', 'CH1']),
-             'y': np.array(['/dev/ttyUSB0', 'CH2']),
-             'z': np.array(['/dev/ttyUSB0', 'CH2'])
+PSU_ports = {'x': np.array(['CH1', '/dev/ttyUSB0']),
+             'y': np.array(['CH2', '/dev/ttyUSB0']),
+             'z': np.array(['CH2', '/dev/ttyUSB0'])
              }
 
 wire_turns = 50
 beta = 0.5445
-PSU_max_voltage = 30
-PSU_max_current = 3
