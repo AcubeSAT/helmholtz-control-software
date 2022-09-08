@@ -15,9 +15,9 @@ axis_current = {'x': 1,
                 'z': 1
                 }
 
-PSU_ports = {'x': np.array(['CH1', '/dev/ttyUSB0']),
-             'y': np.array(['CH2', '/dev/ttyUSB0']),
-             'z': np.array(['CH2', '/dev/ttyUSB0'])
+PSU_ports = {'x': np.array(['CH1', 'DP712']),
+             'y': np.array(['CH2', 'SPD3303C']),
+             'z': np.array(['CH2', 'SPD3303C'])
              }
 
 wire_turns = 50
