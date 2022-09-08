@@ -16,7 +16,7 @@ axis_current = {'x': 1,
                 }
 
 PSU_ports = {'x': np.array(['CH1', 'DP712']),
-             'y': np.array(['CH2', 'SPD3303C']),
+             'y': np.array(['CH1', 'SPD3303C']),
              'z': np.array(['CH2', 'SPD3303C'])
              }
 
