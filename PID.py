@@ -3,7 +3,7 @@ import helmholtz_constants
 
 
 class PID:
-    def __init__(self, K_p, K_d, K_i, B_reference, B_measured, errors, current):
+    def __init__(self):
         self.K_p = 1
         self.K_d = 1
         self.K_i = 1
@@ -12,7 +12,7 @@ class PID:
         self.errors = np.array([1, 1, 1])
         self.current = 1
 
-    def get_initial_current(self, initial_current):
+    def set_initial_current(self, initial_current):
         """
                    Changes current value to calculated initial current based on the commanded magnetic field
 
@@ -22,7 +22,7 @@ class PID:
                 """
         self.current = initial_current
 
-    def get_reference_magnetic_field(self, B_reference):
+    def set_reference_magnetic_field(self, B_reference):
         """
            Sets the value of B_reference (magnetic field) to the value user commanded.
 
@@ -33,7 +33,7 @@ class PID:
 
         self.B_reference = B_reference
 
-    def get_measured_magnetic_field(self, B_measured):
+    def set_measured_magnetic_field(self, B_measured):
         """
            Sets the value of B_measured (magnetic field) to the measured value by system's magnetometer.
 
