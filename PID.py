@@ -11,6 +11,15 @@ class PID:
         self.errors = np.array([1, 1, 1])
         self.current = 1
 
+    def get_initial_current(self, initial_current):
+        """
+                   Changes current value to calculated initial current based on the commanded magnetic field
+
+                   Args:
+                      initial_current: initial_current calculated from the desired magnetic field
+
+                """
+        self.current = initial_current
     def get_reference_magnetic_field(self, B_reference):
         """
            Sets the value of B_reference (magnetic field) to the value user commanded.
