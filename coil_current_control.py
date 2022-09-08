@@ -1,8 +1,7 @@
-from PSU import PSU
 import numpy as np
 import helmholtz_constants
 from scipy import constants
-
+from PSU import PSU
 
 class coil_current_control:
 
