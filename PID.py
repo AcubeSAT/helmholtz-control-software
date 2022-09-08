@@ -1,4 +1,5 @@
 import numpy as np
+import helmholtz_constants
 
 
 class PID:
@@ -20,6 +21,7 @@ class PID:
 
                 """
         self.current = initial_current
+
     def get_reference_magnetic_field(self, B_reference):
         """
            Sets the value of B_reference (magnetic field) to the value user commanded.
@@ -69,5 +71,5 @@ class PID:
                   self.K_d * (self.errors[0] - 2 * self.errors[1] + self.errors[2])
 
         self.current = current
-
+        assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
         return self.current
