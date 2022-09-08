@@ -22,3 +22,5 @@ PSU_ports = {'x': np.array(['CH1', 'DP712']),
 
 wire_turns = 50
 beta = 0.5445
+PSU_max_current = 3
+PSU_max_voltage = 30
