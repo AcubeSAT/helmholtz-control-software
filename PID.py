@@ -66,10 +66,12 @@ class PID:
            Returns: The new value of the current that needs to be applied.
         """
 
-        current = self.current + self.K_p * (self.errors[0] - self.errors[1]) + \
+        self.current = self.current + self.K_p * (self.errors[0] - self.errors[1]) + \
                   self.K_i * self.errors[0] + \
                   self.K_d * (self.errors[0] - 2 * self.errors[1] + self.errors[2])
 
-        self.current = current
+
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
+
+    def get_current(self):
         return self.current
