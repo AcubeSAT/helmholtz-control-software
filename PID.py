@@ -4,9 +4,9 @@ import helmholtz_constants
 
 class PID:
     def __init__(self):
-        self.K_p = 1
-        self.K_d = 1
-        self.K_i = 1
+        self.K_p = 0
+        self.K_d = 0
+        self.K_i = 0
         self.B_reference = 1
         self.B_measured = 1
         self.errors = np.array([1, 1, 1])
@@ -72,6 +72,7 @@ class PID:
 
 
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
+
 
     def get_current(self):
         return self.current
