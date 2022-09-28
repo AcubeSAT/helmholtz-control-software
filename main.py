@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     desired_magnetic_field = get_desired_magnetic_field()
 
-    # SPD3303C = PSU('CH2', 'SPD3303C')
+    SPD3303C = PSU('CH2', 'SPD3303C')
     time.sleep(.5)
     DP712 = PSU("CH1", 'DP712')
 
@@ -47,6 +47,7 @@ if __name__ == "__main__":
             SPD3303C.set_voltage(30)
             time.sleep(.2)
         else:
+            time.sleep(.2)
             DP712.set_current(0)
             time.sleep(.2)
             DP712.set_voltage(30)
@@ -71,9 +72,9 @@ if __name__ == "__main__":
                 SPD3303C.set_current(abs(coils[i].get_current()))
                 time.sleep(0.1)
             else:
-                time.sleep(0.1)
+                time.sleep(1)
                 DP712.set_current(abs(coils[i].get_current()))
-                time.sleep(0.1)
+                time.sleep(0.2)
 
     # while 1:
     #     # TODO: get measurements from magnetometer

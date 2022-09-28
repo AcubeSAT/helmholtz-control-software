@@ -22,7 +22,7 @@ class PSU:
             psu = connected_devices[0]
 
         self.channel = channel
-
+        self.model = model
         self.device = pyvisa.ResourceManager().open_resource(psu)
 
     def set_voltage_and_current(self, voltage, current):
@@ -34,13 +34,18 @@ class PSU:
 
     def set_voltage(self, voltage):
         assert voltage <= self.max_voltage
-        command = (self.channel + ':VOLT ' + str(voltage))
+        if self.model == "DP712":
+            command = (':VOLT ' + str(voltage))
+        else:
+            command = (self.channel + ':VOLT ' + str(voltage))
         self.device.write(command)
 
     def set_current(self, current):
         assert current <= self.max_current
-
-        command = (self.channel + ':CURR ' + str(current))
+        if self.model == "DP712":
+            command = (':CURR ' + str(current))
+        else:
+            command = (self.channel + ':CURR ' + str(current))
         self.device.write(command)
 
     def get_current(self):
