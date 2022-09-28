@@ -76,6 +76,9 @@ if __name__ == "__main__":
                 DP712.set_current(abs(coils[i].get_current()))
                 time.sleep(0.2)
 
+        while 1 :
+            print(SPD3303C.measure_current())
+            print(DP712.measure_current())
     # while 1:
     #     # TODO: get measurements from magnetometer
     #     for i in range(2):
