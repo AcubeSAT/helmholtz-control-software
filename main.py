@@ -1,7 +1,8 @@
 import numpy as np
 from PID import PID
 from PSU import PSU
-from helmholtz_constants import coils
+from coil_current_control import coil_current_control
+from helmholtz_constants import initial_magnetic_field 
 
 def get_desired_magnetic_field():
     print('Command desired magnetic field for each axis in uT: ')
@@ -16,7 +17,11 @@ if __name__ == "__main__":
 
     SPD3303C = PSU('CH2', 'SPD3303C')
 
-
+    coils = np.array(
+        [
+            coil_current_control('x', initial_magnetic_field['x']),
+            coil_current_control('y', initial_magnetic_field['y']),
+            coil_current_control('z', initial_magnetic_field['z'])])
 
     PID = np.array([PID(), PID(), PID()])
 

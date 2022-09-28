@@ -21,12 +21,6 @@ PSU_ports = {'x': np.array(['CH1', 'DP712']),
              'z': np.array(['CH2', 'SPD3303C'])
              }
 
-coils = np.array(
-    [
-        coil_current_control('x', initial_magnetic_field['x']),
-        coil_current_control('y', initial_magnetic_field['y']),
-        coil_current_control('z', initial_magnetic_field['z'])])
-
 wire_turns = 50
 beta = 0.5445
 PSU_max_current = 3
