@@ -1,4 +1,5 @@
 import numpy as np
+from coil_current_control import coil_current_control
 
 coils = {'x': 1.75,
          'y': 1.70,
@@ -19,6 +20,12 @@ PSU_ports = {'x': np.array(['CH1', 'DP712']),
              'y': np.array(['CH1', 'SPD3303C']),
              'z': np.array(['CH2', 'SPD3303C'])
              }
+
+coils = np.array(
+    [
+        coil_current_control('x', initial_magnetic_field['x']),
+        coil_current_control('y', initial_magnetic_field['y']),
+        coil_current_control('z', initial_magnetic_field['z'])])
 
 wire_turns = 50
 beta = 0.5445

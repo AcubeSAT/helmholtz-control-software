@@ -1,8 +1,7 @@
 import numpy as np
 from PID import PID
-from coil_current_control import coil_current_control
 from PSU import PSU
-
+from helmholtz_constants import coils
 
 def get_desired_magnetic_field():
     print('Command desired magnetic field for each axis in uT: ')
@@ -18,27 +17,13 @@ if __name__ == "__main__":
     SPD3303C = PSU('CH2', 'SPD3303C')
 
 
-    coils = np.array(
-        [
-         coil_current_control('y', desired_magnetic_field[1]),
-         coil_current_control('z', desired_magnetic_field[2])])
 
     PID = np.array([PID(), PID(), PID()])
 
     for i in range(2):
         coils[i].set_current()
         PID[i].set_initial_current(coils[i].get_current())
-        # if coils[i].axis == 'x':
-        #     available_PSUs[i].set_current(0)
-        #     available_PSUs[i].set_voltage(30)
-        # elif coils[i].axis == 'y':
-        #     available_PSUs[i].set_channel('CH1')
-        #     available_PSUs[i].set_current(0)
-        #     available_PSUs[i].set_voltage(30)
-        # elif coils[i].axis == 'z':
-        #     available_PSUs[i].set_channel('CH2')
-        #     available_PSUs[i].set_current(0)
-        #     available_PSUs[i].set_voltage(30)
+
         if coils[i].axis == 'y':
             SPD3303C.set_channel('CH1')
             SPD3303C.set_current(0)
@@ -47,6 +32,7 @@ if __name__ == "__main__":
             SPD3303C.set_channel('CH2')
             SPD3303C.set_current(0)
             SPD3303C.set_voltage(30)
+
         PID[i].set_initial_current(coils[i].get_current)
         PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
 
