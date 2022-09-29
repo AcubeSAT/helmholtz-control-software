@@ -122,12 +122,17 @@ void loop() {
 
 //  Serial.print("Data in microTesla(uT):");
 //  Serial.print(" ");
-  Serial.print((float)(x)/gain);
-  Serial.print(" ");
-  Serial.print((float)(y)/gain);
-  Serial.print(" ");
-  Serial.println((float)(z)/gain);
+    uint8_t peos;
+    while (!Serial.available());
+    peos = Serial.readString().toInt();
 
+    if(peos == 0) {
+    Serial.print((float)(x)/gain, 5);
+    Serial.print(" ");
+    Serial.print((float)(y)/gain, 5);
+    Serial.print(" ");
+    Serial.println((float)(z)/gain, 5);
+    }
   //Magnitude should be around 45 uT (+/- 15 uT)
 //  Serial.print("Magnitude(uT):");
 //  Serial.println(uT);

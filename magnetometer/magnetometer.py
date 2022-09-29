@@ -4,20 +4,23 @@ import serial
 
 
 class Magnetometer:
-    def __init__(self, port='/dev/ttyACM0'):
-        self.com = serial.Serial(port)
+    def __init__(self, port='/dev/ttyACM1'):
+        self.com = serial.Serial(port, baudrate=9600, timeout=2)
         self.first_readings = True
+        self.last_magnetic_field = [0, 0, 0]
 
     def get_magnetic_field(self):
-        data = self.com.readline()
-        data = data[:-2].split(b" ")
+        a = self.com.write(b"\x00")
 
-        if self.first_readings:
-            self.first_readings = False
-            pass
+        data = self.com.readline()
+
+        if data == b"":
+            return self.last_magnetic_field
+
+        data = data[:-2].split(b" ")
 
         magnetic_field = [0, 0, 0]
         for i, byte in enumerate(data):
             magnetic_field[i] = float(byte)
-
-        return magnetic_field
+        self.last_magnetic_field = magnetic_field
+        return self.last_magnetic_field
