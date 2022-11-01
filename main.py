@@ -98,17 +98,18 @@ if __name__ == "__main__":
                     sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
                 elif coils[i].get_current() < 0:
                     sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
-            # else:
-            #     time.sleep(1)
-            #     DP712.set_current(abs(coils[i].get_current()))
-            #     time.sleep(0.2)
-            #     if coils[i].get_current() >= 0:
-            #         sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
-            #     elif coils[i].get_current() < 0:
-            #         sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+            else:
+                time.sleep(1)
+                DP712.set_current(abs(coils[i].get_current()))
+                time.sleep(0.2)
+                if coils[i].get_current() >= 0:
+                    sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+                elif coils[i].get_current() < 0:
+                    sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
 
         while 1:
             print(SPD3303C.measure_current())
+            time.sleep(0.1)
             print(DP712.measure_current())
     # while 1:
     #     # TODO: get measurements from magnetometer

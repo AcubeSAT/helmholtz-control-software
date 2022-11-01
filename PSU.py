@@ -1,5 +1,5 @@
 import pyvisa
-
+import time
 
 class PSU:
     """
@@ -13,11 +13,11 @@ class PSU:
         assert model in ['DP712', 'SPD3303C']
 
         connected_devices = pyvisa.ResourceManager().list_resources()
-        if len(connected_devices) == 2:
+        if len(connected_devices) > 1:
             if model == 'DP712':
                 psu = connected_devices[0]
             else:
-                psu = connected_devices[1]
+                psu = connected_devices[2]
         else:
             psu = connected_devices[0]
 
@@ -51,26 +51,28 @@ class PSU:
     def get_current(self):
         command = ':CURR?'
 
-        self.visa_device.write(command)
-        return self.visa_device.query(command.decode('utf-8'), delay=0.01)
+        self.device.write(command)
+        return self.device.query(command, delay=0.01)
 
     def get_voltage(self):
         command = ':VOLT?'
 
-        self.visa_device.write(command)
-        return self.visa_device.query(command.decode('utf-8'), delay=0.01)
+        self.device.write(command)
+        return self.device.query(command, delay=0.01)
 
     def measure_current(self):
         command = ':MEAS:CURR?'
 
         self.device.write(command)
-        return self.visa_device.query(command.decode('utf-8'), delay=0.01)
+        time.sleep(0.5)
+        return self.device.query(command, delay=0.01)
 
     def measure_voltage(self):
         command = ':MEAS:VOLT?'
 
         self.device.write(command)
-        return self.visa_device.query(command.decode('utf-8'), delay=0.01)
+        time.sleep(0.5)
+        return self.device.query(command, delay=0.01)
 
     def set_channel(self, channel):
         self.channel = channel
