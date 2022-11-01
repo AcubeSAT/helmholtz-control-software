@@ -21,6 +21,17 @@ PSU_ports = {'x': np.array(['CH1', 'DP712']),
              'z': np.array(['CH2', 'SPD3303C'])
              }
 
+x_sign = {'negative': b'\x10',
+          'positive': b'\x11'}
+
+y_sign = {'negative': b'\x20',
+          'positive': b'\x21'}
+
+z_sign = {'negative': b'\x30',
+          'positive': b'\x31'}
+
+
+
 wire_turns = 50
 beta = 0.5445
 PSU_max_current = 3
