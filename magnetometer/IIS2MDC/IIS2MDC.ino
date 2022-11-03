@@ -17,7 +17,6 @@
 
 // Includes
 #include <IIS2MDCSensor.h>
-
 #define SerialPort  Serial
 
 #if defined(ARDUINO_B_U585I_IOT02A)
@@ -52,23 +51,36 @@ void setup() {
 }
 
 void loop() {
-  // Led blinking
-//  digitalWrite(LED_BUILTIN, HIGH);
-  delay(10); 
-//  digitalWrite(LED_BUILTIN, LOW);
-  delay(10);
 
   // Read magnetometer
   int32_t magnetometer[3];
   Magneto.GetAxes(magnetometer);
 //
 //  SerialPort.print("Mag[uT]:");
-  Serial.print((float)magnetometer[0]/10,5);
-  Serial.print(" ");
-  Serial.print((float)magnetometer[1]/10,5);
-  Serial.print(" ");
-  Serial.print((float)magnetometer[2]/10,5);
-Serial.print(" ");
-  float ut;
-  ut = sqrt(pow(((float)((float)magnetometer[0]/10)),2) + pow(((float)((float)magnetometer[1]/10)),2)+ pow(((float)((float)magnetometer[2]/10)),2));
-  Serial.println(ut);}
+//  Serial.print((float)magnetometer[0]/10,5);
+//  Serial.print(" ");
+//  Serial.print((float)magnetometer[1]/10,5);
+//  Serial.print(" ");
+//  Serial.print((float)magnetometer[2]/10,5);
+//  Serial.println();
+    
+    uint8_t peos;
+    long t = millis();
+    
+    if(Serial.read()){
+    peos = Serial.readString().toInt();
+    
+    
+    if(peos == 0) {
+    Serial.print((float)magnetometer[0]/10,5);
+    Serial.print(" ");
+    Serial.print((float)magnetometer[1]/10,5);
+    Serial.print(" ");
+    Serial.println((float)magnetometer[2]/10,5);
+    }
+    }
+  
+//  float ut;
+//  ut = sqrt(pow(((float)((float)magnetometer[0]/10)),2) + pow(((float)((float)magnetometer[1]/10)),2)+ pow(((float)((float)magnetometer[2]/10)),2));
+//  Serial.println(ut);
+  }
