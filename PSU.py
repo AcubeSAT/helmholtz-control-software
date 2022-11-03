@@ -15,11 +15,11 @@ class PSU:
         connected_devices = pyvisa.ResourceManager().list_resources()
         if len(connected_devices) > 1:
             if model == 'DP712':
-                psu = connected_devices[0]
+                psu = 'ASRL/dev/ttyUSB0::INSTR'
             else:
-                psu = connected_devices[2]
+                psu = 'USB0::1155::30016::SPD3EEEC6R0509::0::INSTR'
         else:
-            psu = connected_devices[0]
+            psu = 'ASRL/dev/ttyUSB0::INSTR'
 
         self.channel = channel
         self.model = model
