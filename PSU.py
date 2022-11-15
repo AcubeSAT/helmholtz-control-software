@@ -52,27 +52,27 @@ class PSU:
         command = ':CURR?'
 
         self.device.write(command)
-        return self.device.query(command, delay=0.01)
+        return self.device.query(command, delay=0.1)
 
     def get_voltage(self):
         command = ':VOLT?'
 
         self.device.write(command)
-        return self.device.query(command, delay=0.01)
+        return self.device.query(command, delay=0.1)
 
     def measure_current(self):
         command = ':MEAS:CURR?'
 
         self.device.write(command)
         time.sleep(0.5)
-        return self.device.query(command, delay=0.01)
+        return self.device.query(command, delay=0.1)
 
     def measure_voltage(self):
         command = ':MEAS:VOLT?'
 
         self.device.write(command)
         time.sleep(0.5)
-        return self.device.query(command, delay=0.01)
+        return self.device.query(command, delay=0.1)
 
     def set_channel(self, channel):
         self.channel = channel

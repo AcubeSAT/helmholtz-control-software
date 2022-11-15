@@ -4,7 +4,7 @@ import serial
 import numpy as np
 
 class Magnetometer:
-    def __init__(self, port='/dev/ttyACM0'):
+    def __init__(self, port='/dev/ttyACM1'):
         self.com = serial.Serial(port, baudrate=9600, timeout=2)
         self.first_readings = True
         self.last_magnetic_field = [0, 0, 0]
@@ -18,7 +18,7 @@ class Magnetometer:
 
         data = self.com.readline()
 
-        if data == b"":
+        if data == b"" or data == b"0":
             return self.last_magnetic_field
 
         data = data[:-2].split(b" ")

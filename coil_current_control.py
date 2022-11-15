@@ -24,10 +24,10 @@ class coil_current_control:
 
             Returns: the current that needs to be applied
         """
-
-        self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * np.pi * self.length) / (
+        self.gamma = helmholtz_constants.beta / self.length
+        self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * 1e-6 * np.pi * self.length) / (
                 2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
-                               (1 + helmholtz_constants.beta ** 2) * np.sqrt(2 + helmholtz_constants.beta ** 2)) / 2
+                               (1 + self.gamma ** 2) * np.sqrt(2 + self.gamma ** 2)) / 2
 
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
