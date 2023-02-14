@@ -67,6 +67,7 @@ void loop() {
     uint8_t peos;
     long t = millis();
     
+
     if(Serial.read()){
     peos = Serial.readString().toInt();
     

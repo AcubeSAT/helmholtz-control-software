@@ -28,3 +28,7 @@ class Magnetometer:
             magnetic_field[i] = float(byte)
         self.last_magnetic_field = np.matmul(np.subtract(magnetic_field,self.V),self.W)
         return self.last_magnetic_field
+
+mag = Magnetometer()
+while(1):
+    print(mag.get_magnetic_field())
