@@ -4,8 +4,8 @@ import serial
 import numpy as np
 
 class Magnetometer:
-    def __init__(self, port='/dev/ttyACM1'):
-        self.com = serial.Serial(port, baudrate=9600, timeout=2)
+    def __init__(self, port='/dev/ttyACM0'):
+        self.com = serial.Serial(port, baudrate=115200, timeout=2)
         self.first_readings = True
         self.last_magnetic_field = [0, 0, 0]
         # self.V = [-12.6343, 18.1653, -7.3313] # old calibration
