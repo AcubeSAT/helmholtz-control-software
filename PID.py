@@ -44,18 +44,31 @@ class PID:
 
         self.B_measured = B_measured
 
-    def update_errors(self):
+    # def update_errors(self):
+    #     """
+    #        Updates the errors between measured and commanded magnetic field for the last 3 timesteps.
+    #        Each time a new error is calculated for the current time step, while the other errors move
+    #        a time step behind. The error at k-2 timestep is overwritten.
+
+    #    """
+
+    #     error = self.B_reference - self.B_measured
+    #     self.errors[2] = self.errors[1]
+    #     self.errors[1] = self.errors[0]
+    #     self.errors[0] = error
+
+    def update_errors(self, current_error):
         """
-           Updates the errors between measured and commanded magnetic field for the last 3 timesteps.
-           Each time a new error is calculated for the current time step, while the other errors move
-           a time step behind. The error at k-2 timestep is overwritten.
+            Updates the errors between measured and commanded magnetic field for the last 3 timesteps.
+            Each time a new error is calculated for the current time step, the other errors move
+            a time step behind. The error at k-2 timestep is overwritten.
 
-       """
-
-        error = self.B_reference - self.B_measured
+            Arguments:
+                :param current_error: the current error
+        """
         self.errors[2] = self.errors[1]
         self.errors[1] = self.errors[0]
-        self.errors[0] = error
+        self.errors[0] = current_error
 
     def calculate_current(self):
         """
