@@ -8,6 +8,7 @@ from coil_current_control import coil_current_control
 from helmholtz_constants import initial_magnetic_field
 from magnetometer import magnetometer
 from h_bridge import sent_sign
+from Current_Magnetic_Field_Transform import input_magnetic_field_output_current
 
 
 def get_desired_magnetic_field():
@@ -16,7 +17,7 @@ def get_desired_magnetic_field():
     return np.array([desired_magnetic_field_uT_x * 10 ** -6, desired_magnetic_field_uT_y * 10 ** -6,
                      desired_magnetic_field_uT_z * 10 ** -6])
 
-
+# TODO: The magnetometer gives back values in uT, but there is no the convertion into T so this needs checking
 def get_initial_magnetic_field(magnetometer):
     for i in range(5):
         initial_field = magnetometer.get_magnetic_field()
@@ -29,7 +30,8 @@ if __name__ == "__main__":
     II2MDC = magnetometer.Magnetometer()
     # loop to get the correct magnetometer values
     for _ in range(3):
-        II2MDC.get_magnetic_field()
+        ambient_magnetic_field = II2MDC.get_magnetic_field()
+    desired_current = input_magnetic_field_output_current(desired_magnetic_field - ambient_magnetic_field)
 
     SPD3303C = PSU('CH2', 'SPD3303C')
     time.sleep(.5)
@@ -76,47 +78,47 @@ if __name__ == "__main__":
         PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
 
 
-    while 1:
-        for i in range(3):
-            time.sleep(0.1)
-            coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
-            coils[i].set_current()
-            if coils[i].axis == 'y':
-                SPD3303C.set_channel('CH1')
-                time.sleep(0.1)
-                SPD3303C.set_current(abs(coils[i].get_current()))
-                time.sleep(0.1)
-                if coils[i].get_current() >= 0:
-                    sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
-                elif coils[i].get_current() < 0:
-                    sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
-            elif coils[i].axis == 'z':
-                SPD3303C.set_channel('CH2')
-                time.sleep(0.1)
-                SPD3303C.set_current(abs(coils[i].get_current()))
-                time.sleep(0.1)
-                if coils[i].get_current() >= 0:
-                    sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
-                elif coils[i].get_current() < 0:
-                    sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
-            else:
-                time.sleep(1)
-                DP712.set_current(abs(coils[i].get_current()))
-                time.sleep(0.2)
-                if coils[i].get_current() >= 0:
-                    sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
-                elif coils[i].get_current() < 0:
-                    sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
-    #
-        while 1:
+    # while 1:
+    #     for i in range(3):
+    #         time.sleep(0.1)
+    #         coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+    #         coils[i].set_current()
+    #         if coils[i].axis == 'y':
+    #             SPD3303C.set_channel('CH1')
+    #             time.sleep(0.1)
+    #             SPD3303C.set_current(abs(coils[i].get_current()))
+    #             time.sleep(0.1)
+    #             if coils[i].get_current() >= 0:
+    #                 sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+    #             elif coils[i].get_current() < 0:
+    #                 sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+    #         elif coils[i].axis == 'z':
+    #             SPD3303C.set_channel('CH2')
+    #             time.sleep(0.1)
+    #             SPD3303C.set_current(abs(coils[i].get_current()))
+    #             time.sleep(0.1)
+    #             if coils[i].get_current() >= 0:
+    #                 sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+    #             elif coils[i].get_current() < 0:
+    #                 sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+    #         else:
+    #             time.sleep(0.1)
+    #             DP712.set_current(abs(coils[i].get_current()))
+    #             time.sleep(0.2)
+    #             if coils[i].get_current() >= 0:
+    #                 sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+    #             elif coils[i].get_current() < 0:
+    #                 sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+                
+        # while 1:
             # print(SPD3303C.measure_current())
             # time.sleep(0.1)
             # print(DP712.measure_current())
             # time.sleep(.1)
-            mf = II2MDC.get_magnetic_field()
-            norm = np.sqrt(mf[0] ** 2 + mf[1] ** 2 + mf[2] ** 2)
-            print(II2MDC.get_magnetic_field(), " ", norm)
-            time.sleep(.1)
+            # magn_field = II2MDC.get_magnetic_field()
+            # norm_magnetic_field = np.sqrt(magn_field[0] ** 2 + magn_field[1] ** 2 + magn_field[2] ** 2)
+            # print(II2MDC.get_magnetic_field(), " ", norm_magnetic_field)
+            # time.sleep(.1)
     # while 1:
     #     # TODO: get measurements from magnetometer
     #     for i in range(2):
@@ -131,3 +133,46 @@ if __name__ == "__main__":
     #             SPD3303C.set_channel('CH2')
     #             SPD3303C.set_current(0)
     #             SPD3303C.set_voltage(30)
+
+    while 1:
+        for i in range(3):
+            time.sleep(0.1)
+            coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+            PID[i].calculate_current()
+            if coils[i].axis == 'y':
+                SPD3303C.set_channel('CH1')
+                time.sleep(0.1)
+                SPD3303C.set_current(abs(PID[i].get_current()))
+                time.sleep(0.1)
+                if PID[i].get_current() >= 0:
+                    sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+                elif PID[i].get_current() < 0:
+                    sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+            elif coils[i].axis == 'z':
+                SPD3303C.set_channel('CH2')
+                time.sleep(0.1)
+                SPD3303C.set_current(abs(PID[i].get_current()))
+                time.sleep(0.1)
+                if PID[i].get_current() >= 0:
+                    sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+                elif PID[i].get_current() < 0:
+                    sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+            else:
+                time.sleep(0.1)
+                DP712.set_current(abs(PID[i].get_current()))
+                time.sleep(0.2)
+                if PID[i].get_current() >= 0:
+                    sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+                elif PID[i].get_current() < 0:
+                    sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+
+        magnetic_field_measured = II2MDC.get_magnetic_field()
+        current_measured = input_magnetic_field_output_current(magnetic_field_measured - ambient_magnetic_field)
+        current_error = desired_current - current_measured
+        for i in range(3):
+            PID[i].update_errors()
+
+        norm_magnetic_field = np.sqrt(magnetic_field_measured[0] ** 2 + magnetic_field_measured[1] ** 2 + magnetic_field_measured[2] ** 2)
+        print(II2MDC.get_magnetic_field(), " ", norm_magnetic_field)
+        time.sleep(0.1)
+
