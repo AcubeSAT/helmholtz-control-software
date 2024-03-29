@@ -61,37 +61,42 @@ if __name__ == "__main__":
     magnetic_field_error_instance = [0, 0, 0]
     current_value_instance = [0, 0, 0]
     magnetic_field_value_instance = [0, 0, 0]
+
+    # set currents to 0 and give the initial information to the PID to start working
     for i in range(3):
         coils[i].set_current()
 
         if coils[i].axis == 'y':
             SPD3303C.set_channel('CH1')
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_current(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_voltage(30)
-            time.sleep(0.2)
+            time.sleep(0.1)
         elif coils[i].axis == 'z':
             SPD3303C.set_channel('CH2')
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_current(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_voltage(30)
-            time.sleep(0.2)
+            time.sleep(0.1)
         else:
-            time.sleep(0.2)
+            time.sleep(0.1)
             DP712.set_current(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             DP712.set_voltage(30)
-            time.sleep(0.2)
+            time.sleep(0.1)
 
         PID[i].set_reference_current(input_magnetic_field_output_current(desired_magnetic_field[i] - ambient_magnetic_field[i], coils_length[i]))
         PID[i].update_errors()
+        current_value_instance[i] = PID[i].get_measured_current()
+        magnetic_field_value_instance[i] = ambient_magnetic_field[i]
         current_error_instance[i] = PID[i].get_reference_current() - PID[i].get_measured_current()
         magnetic_field_error_instance[i] = desired_magnetic_field[i] - ambient_magnetic_field[i]
 
+    # save the first set of data after all the initializations
     current_value_list.append(current_value_instance)
-    magnetic_field_value_list.append(ambient_magnetic_field)
+    magnetic_field_value_list.append(magnetic_field_value_instance)
     current_error_list.append(current_error_instance)
     magnetic_field_error_list.append(magnetic_field_error_instance)
 
@@ -125,12 +130,25 @@ if __name__ == "__main__":
                 elif PID[i].get_current() < 0:
                     sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
 
+        # get new values from magnetometer, update the PID and save the data
         magnetic_field_measured = II2MDC.get_magnetic_field()
+        time.sleep(0.1)
         for i in range(3):
             PID[i].set_measured_current(input_magnetic_field_output_current(magnetic_field_measured[i] - ambient_magnetic_field[i]))
             PID[i].update_errors()
+            current_value_instance[i] = PID[i].get_measured_current()
+            magnetic_field_value_instance[i] = magnetic_field_measured[i]
+            current_error_instance[i] = PID[i].get_reference_current() - PID[i].get_measured_current()
+            magnetic_field_error_instance[i] = desired_magnetic_field[i] - magnetic_field_measured[i]
 
+        # save the first set of data after all the initializations
+        current_value_list.append(current_value_instance)
+        magnetic_field_value_list.append(magnetic_field_value_instance)
+        current_error_list.append(current_error_instance)
+        magnetic_field_error_list.append(magnetic_field_error_instance)
+        
+        # calculate the norm of magnetic field and print the magnetic field per axis and the norm of it
         norm_magnetic_field = np.sqrt(magnetic_field_measured[0] ** 2 + magnetic_field_measured[1] ** 2 + magnetic_field_measured[2] ** 2)
-        print(magnetic_field_measured, " ", norm_magnetic_field)
+        print(magnetic_field_measured, "   ", norm_magnetic_field)
         time.sleep(0.1)
 
