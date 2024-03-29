@@ -7,20 +7,11 @@ class PID:
         self.K_p = 0
         self.K_d = 0
         self.K_i = 0
-        self.B_reference = 1
-        self.B_measured = 1
+        self.B_reference = 0
+        self.B_measured = 0
         self.errors = np.array([1, 1, 1])
-        self.current = 1
-
-    def set_initial_current(self, initial_current):
-        """
-                   Changes current value to calculated initial current based on the commanded magnetic field
-
-                   Args:
-                      initial_current: initial_current calculated from the desired magnetic field
-
-                """
-        self.current = initial_current
+        self.current_reference = 0
+        self.current_measured = 0
 
     def set_reference_magnetic_field(self, B_reference):
         """
@@ -44,36 +35,38 @@ class PID:
 
         self.B_measured = B_measured
 
-    # def update_errors(self):
-    #     """
-    #        Updates the errors between measured and commanded magnetic field for the last 3 timesteps.
-    #        Each time a new error is calculated for the current time step, while the other errors move
-    #        a time step behind. The error at k-2 timestep is overwritten.
+    def set_reference_current(self, current_reference):
+        """
+           Sets the value of current_reference to the desired value, after transformation of the desired magnetic field to current.
 
-    #    """
+           Args:
+               current_reference: current_reference commanded
+        """
+        self.current_reference = current_reference
 
-    #     error = self.B_reference - self.B_measured
-    #     self.errors[2] = self.errors[1]
-    #     self.errors[1] = self.errors[0]
-    #     self.errors[0] = error
+    def set_measured_current(self, current_measured):
+        """
+           Sets the value of current_measured to the measured value, after transformation of the value of by system's magnetometer to current.
 
-    def update_errors(self, current_error):
+           Args:
+               current_measured: current_measured 
+       """
+        self.current_measured = current_measured
+
+    def update_errors(self):
         """
             Updates the errors between measured and commanded magnetic field for the last 3 timesteps.
             Each time a new error is calculated for the current time step, the other errors move
             a time step behind. The error at k-2 timestep is overwritten.
-
-            Arguments:
-                :param current_error: the current error
         """
         self.errors[2] = self.errors[1]
         self.errors[1] = self.errors[0]
-        self.errors[0] = current_error
+        self.errors[0] = self.current_reference - self.current_measured
 
     def calculate_current(self):
         """
            Calculates the current based on the PID controller found in "Helmholtz cage design and
-           validation for nanosatellites HWIL testing" paper, in order to adjust the magnetic
+           validation for nanosatellites HIL testing" paper, in order to adjust the magnetic
            field and minimize the error between the commanded and measured magnetic field.
 
            Returns: The new value of the current that needs to be applied.
