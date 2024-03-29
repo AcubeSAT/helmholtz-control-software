@@ -5,7 +5,6 @@ import helmholtz_constants
 from PID import PID
 from PSU import PSU
 from coil_current_control import coil_current_control
-from helmholtz_constants import initial_magnetic_field
 from magnetometer import magnetometer
 from h_bridge import sent_sign
 from Current_Magnetic_Field_Transform import input_magnetic_field_output_current
@@ -30,10 +29,9 @@ if __name__ == "__main__":
     # loop to get the correct magnetometer values
     for _ in range(5):
         ambient_magnetic_field = II2MDC.get_magnetic_field()
-    desired_current = input_magnetic_field_output_current(desired_magnetic_field)
 
     SPD3303C = PSU('CH2', 'SPD3303C')
-    time.sleep(.5)
+    time.sleep(0.5)
     DP712 = PSU("CH1", 'DP712')
 
     helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
@@ -41,16 +39,16 @@ if __name__ == "__main__":
     # desired_magnetic_field =[1,1,1]
     coils = np.array(
         [
-            coil_current_control('x', initial_magnetic_field['x']),
-            coil_current_control('y', initial_magnetic_field['y']),
-            coil_current_control('z', initial_magnetic_field['z'])])
+            coil_current_control('x', helmholtz_constants.initial_magnetic_field['x']),
+            coil_current_control('y', helmholtz_constants.initial_magnetic_field['y']),
+            coil_current_control('z', helmholtz_constants.initial_magnetic_field['z'])])
 
     PID = [PID(), PID(), PID()]
 
+    coils_length = list(helmholtz_constants.coils.values())
 
     for i in range(3):
         coils[i].set_current()
-        PID[i].set_initial_current(coils[i].get_current())
 
         if coils[i].axis == 'y':
             SPD3303C.set_channel('CH1')
@@ -65,20 +63,20 @@ if __name__ == "__main__":
             SPD3303C.set_current(0)
             time.sleep(0.2)
             SPD3303C.set_voltage(30)
-            time.sleep(.2)
+            time.sleep(0.2)
         else:
-            time.sleep(.2)
+            time.sleep(0.2)
             DP712.set_current(0)
-            time.sleep(.2)
+            time.sleep(0.2)
             DP712.set_voltage(30)
-            time.sleep(.2)
+            time.sleep(0.2)
 
-        PID[i].set_initial_current(coils[i].get_current())
         PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
+        PID[i].set_reference_current(input_magnetic_field_output_current(desired_magnetic_field[i] - ambient_magnetic_field[i], coils_length[i]))
+        PID[i].update_errors()
 
     while 1:
         for i in range(3):
-            # coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
             PID[i].calculate_current()
             if coils[i].axis == 'y':
                 SPD3303C.set_channel('CH1')
@@ -101,19 +99,18 @@ if __name__ == "__main__":
             else:
                 time.sleep(0.1)
                 DP712.set_current(abs(PID[i].get_current()))
-                time.sleep(0.2)
+                time.sleep(0.1)
                 if PID[i].get_current() >= 0:
                     sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
                 elif PID[i].get_current() < 0:
                     sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
 
         magnetic_field_measured = II2MDC.get_magnetic_field()
-        current_measured = input_magnetic_field_output_current(magnetic_field_measured - ambient_magnetic_field)
-        current_error = desired_current - current_measured
         for i in range(3):
+            PID[i].set_measured_current(input_magnetic_field_output_current(magnetic_field_measured[i] - ambient_magnetic_field[i]))
             PID[i].update_errors()
 
         norm_magnetic_field = np.sqrt(magnetic_field_measured[0] ** 2 + magnetic_field_measured[1] ** 2 + magnetic_field_measured[2] ** 2)
-        print(II2MDC.get_magnetic_field(), " ", norm_magnetic_field)
+        print(magnetic_field_measured, " ", norm_magnetic_field)
         time.sleep(0.1)
 
