@@ -30,8 +30,7 @@ if __name__ == "__main__":
     II2MDC = magnetometer.Magnetometer()
     # loop to get the correct magnetometer values
     for _ in range(3):
-        ambient_magnetic_field = II2MDC.get_magnetic_field()
-    desired_current = input_magnetic_field_output_current(desired_magnetic_field - ambient_magnetic_field)
+        II2MDC.get_magnetic_field()
 
     SPD3303C = PSU('CH2', 'SPD3303C')
     time.sleep(.5)
@@ -134,9 +133,66 @@ if __name__ == "__main__":
     #             SPD3303C.set_current(0)
     #             SPD3303C.set_voltage(30)
 
+
+
+
+
+if __name__ == "__main__":
+
+    desired_magnetic_field = get_desired_magnetic_field()
+    II2MDC = magnetometer.Magnetometer()
+    # loop to get the correct magnetometer values
+    for _ in range(5):
+        ambient_magnetic_field = II2MDC.get_magnetic_field()
+    desired_current = input_magnetic_field_output_current(desired_magnetic_field)
+
+    SPD3303C = PSU('CH2', 'SPD3303C')
+    time.sleep(.5)
+    DP712 = PSU("CH1", 'DP712')
+
+    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
+    print(helmholtz_constants.initial_magnetic_field)
+    # desired_magnetic_field =[1,1,1]
+    coils = np.array(
+        [
+            coil_current_control('x', initial_magnetic_field['x']),
+            coil_current_control('y', initial_magnetic_field['y']),
+            coil_current_control('z', initial_magnetic_field['z'])])
+
+    PID = [PID(), PID(), PID()]
+
+
+    for i in range(3):
+        coils[i].set_current()
+        PID[i].set_initial_current(coils[i].get_current())
+
+        if coils[i].axis == 'y':
+            SPD3303C.set_channel('CH1')
+            time.sleep(0.2)
+            SPD3303C.set_current(0)
+            time.sleep(0.2)
+            SPD3303C.set_voltage(30)
+            time.sleep(0.2)
+        elif coils[i].axis == 'z':
+            SPD3303C.set_channel('CH2')
+            time.sleep(0.2)
+            SPD3303C.set_current(0)
+            time.sleep(0.2)
+            SPD3303C.set_voltage(30)
+            time.sleep(.2)
+        else:
+            time.sleep(.2)
+            DP712.set_current(0)
+            time.sleep(.2)
+            DP712.set_voltage(30)
+            time.sleep(.2)
+
+        PID[i].set_initial_current(coils[i].get_current())
+        PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
+
     while 1:
         for i in range(3):
-            coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+            # coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
             PID[i].calculate_current()
             if coils[i].axis == 'y':
                 SPD3303C.set_channel('CH1')
