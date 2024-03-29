@@ -10,17 +10,12 @@ from h_bridge import sent_sign
 from Current_Magnetic_Field_Transform import input_magnetic_field_output_current
 
 
+# ask the user to give the desired magnetic field
 def get_desired_magnetic_field():
     print('Command desired magnetic field for each axis in uT: ')
     desired_magnetic_field_uT_x, desired_magnetic_field_uT_y, desired_magnetic_field_uT_z = map(float, input().split())
     return np.array([desired_magnetic_field_uT_x * 10 ** -6, desired_magnetic_field_uT_y * 10 ** -6,
                      desired_magnetic_field_uT_z * 10 ** -6])
-
-def get_initial_magnetic_field(magnetometer):
-    for i in range(5):
-        initial_field = magnetometer.get_magnetic_field() * 10 ** -6
-    return initial_field
-
 
 if __name__ == "__main__":
 
@@ -30,6 +25,7 @@ if __name__ == "__main__":
     current_value_list = []
     magnetic_field_value_list = []
 
+    # get the desired magnetic field and initialize PSU
     desired_magnetic_field = get_desired_magnetic_field()
     II2MDC = magnetometer.Magnetometer()
 
@@ -42,8 +38,7 @@ if __name__ == "__main__":
     time.sleep(0.5)
     DP712 = PSU("CH1", 'DP712')
 
-    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
-    print(helmholtz_constants.initial_magnetic_field)
+    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = ambient_magnetic_field
 
     # Initialize coils
     coils = np.array(
@@ -101,6 +96,7 @@ if __name__ == "__main__":
     magnetic_field_error_list.append(magnetic_field_error_instance)
 
     while 1:
+        # calculate current from PID, send absolute value of this current to PSU and send the sign of the current value to arduino
         for i in range(3):
             PID[i].calculate_current()
             if coils[i].axis == 'y':
