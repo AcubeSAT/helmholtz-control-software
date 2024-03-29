@@ -24,19 +24,28 @@ def get_initial_magnetic_field(magnetometer):
 
 if __name__ == "__main__":
 
+    # initialize lists for saving data
+    current_error_list = []
+    magnetic_field_error_list = []
+    current_value_list = []
+    magnetic_field_value_list = []
+
     desired_magnetic_field = get_desired_magnetic_field()
     II2MDC = magnetometer.Magnetometer()
+
     # loop to get the correct magnetometer values
     for _ in range(5):
         ambient_magnetic_field = II2MDC.get_magnetic_field()
 
+    # initialize PSU
     SPD3303C = PSU('CH2', 'SPD3303C')
     time.sleep(0.5)
     DP712 = PSU("CH1", 'DP712')
 
     helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
     print(helmholtz_constants.initial_magnetic_field)
-    # desired_magnetic_field =[1,1,1]
+
+    # Initialize coils
     coils = np.array(
         [
             coil_current_control('x', helmholtz_constants.initial_magnetic_field['x']),
@@ -47,6 +56,11 @@ if __name__ == "__main__":
 
     coils_length = list(helmholtz_constants.coils.values())
 
+    # initialize instances for saving data
+    current_error_instance = [0, 0, 0]
+    magnetic_field_error_instance = [0, 0, 0]
+    current_value_instance = [0, 0, 0]
+    magnetic_field_value_instance = [0, 0, 0]
     for i in range(3):
         coils[i].set_current()
 
@@ -71,9 +85,15 @@ if __name__ == "__main__":
             DP712.set_voltage(30)
             time.sleep(0.2)
 
-        PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
         PID[i].set_reference_current(input_magnetic_field_output_current(desired_magnetic_field[i] - ambient_magnetic_field[i], coils_length[i]))
         PID[i].update_errors()
+        current_error_instance[i] = PID[i].get_reference_current() - PID[i].get_measured_current()
+        magnetic_field_error_instance[i] = desired_magnetic_field[i] - ambient_magnetic_field[i]
+
+    current_value_list.append(current_value_instance)
+    magnetic_field_value_list.append(ambient_magnetic_field)
+    current_error_list.append(current_error_instance)
+    magnetic_field_error_list.append(magnetic_field_error_instance)
 
     while 1:
         for i in range(3):
