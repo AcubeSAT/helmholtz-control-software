@@ -30,9 +30,9 @@ y_sign = {'negative': b'\x20',
 z_sign = {'negative': b'\x30',
           'positive': b'\x31'}
 
-
-
 wire_turns = 50
 beta = 0.5445
 PSU_max_current = 3
 PSU_max_voltage = 30
+
+MAG_PERM_AIR = 4 * np.pi * 1e-7

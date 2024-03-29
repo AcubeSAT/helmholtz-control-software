@@ -2,9 +2,7 @@
 import numpy as np
 import math
 
-# Custom libraries
-import Parameters
-
+import helmholtz_constants
 
 def input_magnetic_field_output_current(magnetic_field, side_length):
     """
@@ -23,7 +21,7 @@ def input_magnetic_field_output_current(magnetic_field, side_length):
     geo_param = (8 * (side_length ** 2)) / (((side_length ** 2) + (distance ** 2)) * math.sqrt(
         2 * (side_length ** 2) + (distance ** 2)))
 
-    current = (np.pi * magnetic_field) / (Parameters.MAG_PERM * Parameters.WIRE_TURNS * geo_param)
+    current = (np.pi * magnetic_field) / (helmholtz_constants.MAG_PERM_AIR * helmholtz_constants.wire_turns * geo_param)
 
     return current
 
@@ -46,6 +44,6 @@ def input_current_output_magnetic_field(current, side_length):
     geo_param = (8 * (side_length ** 2)) / (((side_length ** 2) + (distance ** 2)) * math.sqrt(
         2 * (side_length ** 2) + (distance ** 2)))
 
-    magnetic_field = (Parameters.MAG_PERM * Parameters.WIRE_TURNS * current * geo_param) / np.pi
+    magnetic_field = (helmholtz_constants.MAG_PERM_AIR * helmholtz_constants.wire_turns * current * geo_param) / np.pi
 
     return magnetic_field

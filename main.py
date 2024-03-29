@@ -17,7 +17,7 @@ def get_desired_magnetic_field():
     return np.array([desired_magnetic_field_uT_x * 10 ** -6, desired_magnetic_field_uT_y * 10 ** -6,
                      desired_magnetic_field_uT_z * 10 ** -6])
 
-# TODO: The magnetometer gives back values in uT, but there is no the convertion into T so this needs checking
+# NOTE: The magnetometer gives back values in uT, but there is no the convertion into T so this needs checking
 def get_initial_magnetic_field(magnetometer):
     for i in range(5):
         initial_field = magnetometer.get_magnetic_field()
@@ -136,7 +136,6 @@ if __name__ == "__main__":
 
     while 1:
         for i in range(3):
-            time.sleep(0.1)
             coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
             PID[i].calculate_current()
             if coils[i].axis == 'y':
