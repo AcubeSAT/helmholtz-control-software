@@ -7,33 +7,9 @@ class PID:
         self.K_p = 0
         self.K_d = 0
         self.K_i = 0
-        self.B_reference = 0
-        self.B_measured = 0
         self.errors = np.array([1, 1, 1])
         self.current_reference = 0
         self.current_measured = 0
-
-    def set_reference_magnetic_field(self, B_reference):
-        """
-           Sets the value of B_reference (magnetic field) to the value user commanded.
-
-           Args:
-               B_reference: magnetic field commanded by the user
-
-        """
-
-        self.B_reference = B_reference
-
-    def set_measured_magnetic_field(self, B_measured):
-        """
-           Sets the value of B_measured (magnetic field) to the measured value by system's magnetometer.
-
-           Args:
-               B_reference: magnetic field commanded by the user
-
-       """
-
-        self.B_measured = B_measured
 
     def set_reference_current(self, current_reference):
         """
@@ -44,6 +20,9 @@ class PID:
         """
         self.current_reference = current_reference
 
+    def get_reference_current(self):
+        return self.current_reference
+
     def set_measured_current(self, current_measured):
         """
            Sets the value of current_measured to the measured value, after transformation of the value of by system's magnetometer to current.
@@ -52,6 +31,9 @@ class PID:
                current_measured: current_measured 
        """
         self.current_measured = current_measured
+
+    def get_measured_current(self):
+        return self.measured_current
 
     def update_errors(self):
         """
