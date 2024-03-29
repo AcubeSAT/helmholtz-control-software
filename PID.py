@@ -7,7 +7,7 @@ class PID:
         self.K_p = 0
         self.K_d = 0
         self.K_i = 0
-        self.errors = np.array([1, 1, 1])
+        self.errors = np.array([0, 0, 0])
         self.current_reference = 0
         self.current_measured = 0
 
