@@ -75,48 +75,59 @@ if __name__ == "__main__":
         PID[i].set_initial_current(coils[i].get_current())
         PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
 
-
-    while 1:
-        for i in range(3):
-            time.sleep(0.1)
-            coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
-            coils[i].set_current()
-            if coils[i].axis == 'y':
-                SPD3303C.set_channel('CH1')
-                time.sleep(0.1)
-                SPD3303C.set_current(abs(coils[i].get_current()))
-                time.sleep(0.1)
-                if coils[i].get_current() >= 0:
-                    sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
-                elif coils[i].get_current() < 0:
-                    sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
-            elif coils[i].axis == 'z':
-                SPD3303C.set_channel('CH2')
-                time.sleep(0.1)
-                SPD3303C.set_current(abs(coils[i].get_current()))
-                time.sleep(0.1)
-                if coils[i].get_current() >= 0:
-                    sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
-                elif coils[i].get_current() < 0:
-                    sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
-            else:
-                time.sleep(1)
-                DP712.set_current(abs(coils[i].get_current()))
-                time.sleep(0.2)
-                if coils[i].get_current() >= 0:
-                    sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
-                elif coils[i].get_current() < 0:
-                    sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
-    #
+# Open files for writing
+    with open("magnetic_field_x_values.txt", "w") as file_x, \
+         open("magnetic_field_y_values.txt", "w") as file_y, \
+         open("magnetic_field_z_values.txt", "w") as file_z, \
+         open("magnetic_field_all_values.txt", "w") as file_all:
         while 1:
-            # print(SPD3303C.measure_current())
-            # time.sleep(0.1)
-            # print(DP712.measure_current())
-            # time.sleep(.1)
-            mf = II2MDC.get_magnetic_field()
-            norm = np.sqrt(mf[0] ** 2 + mf[1] ** 2 + mf[2] ** 2)
-            print(II2MDC.get_magnetic_field(), " ", norm)
-            time.sleep(.1)
+            for i in range(3):
+                time.sleep(0.1)
+                coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+                coils[i].set_current()
+                if coils[i].axis == 'y':
+                    SPD3303C.set_channel('CH1')
+                    time.sleep(0.1)
+                    SPD3303C.set_current(abs(coils[i].get_current()))
+                    time.sleep(0.1)
+                    if coils[i].get_current() >= 0:
+                        sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+                    elif coils[i].get_current() < 0:
+                        sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+                elif coils[i].axis == 'z':
+                    SPD3303C.set_channel('CH2')
+                    time.sleep(0.1)
+                    SPD3303C.set_current(abs(coils[i].get_current()))
+                    time.sleep(0.1)
+                    if coils[i].get_current() >= 0:
+                        sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+                    elif coils[i].get_current() < 0:
+                        sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+                else:
+                    time.sleep(1)
+                    DP712.set_current(abs(coils[i].get_current()))
+                    time.sleep(0.2)
+                    if coils[i].get_current() >= 0:
+                        sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+                    elif coils[i].get_current() < 0:
+                        sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+        #
+            while 1:
+                # print(SPD3303C.measure_current())
+                # time.sleep(0.1)
+                # print(DP712.measure_current())
+                # time.sleep(.1)
+                mf = II2MDC.get_magnetic_field()
+                norm = np.sqrt(mf[0] ** 2 + mf[1] ** 2 + mf[2] ** 2)
+                print(II2MDC.get_magnetic_field(), " ", norm)
+                # Write values to respective files
+                file_x.write(f"{mf[0]}\n")
+                file_y.write(f"{mf[1]}\n")
+                file_z.write(f"{mf[2]}\n")
+                file_all.write(f"{mf[0]}, {mf[1]}, {mf[2]}\n")
+                for f in [file_x, file_y, file_z, file_all]:
+                    f.flush()  # Flush the buffer to ensure data is written immediately
+                time.sleep(.1)
     # while 1:
     #     # TODO: get measurements from magnetometer
     #     for i in range(2):
@@ -131,3 +142,5 @@ if __name__ == "__main__":
     #             SPD3303C.set_channel('CH2')
     #             SPD3303C.set_current(0)
     #             SPD3303C.set_voltage(30)
+
+    
