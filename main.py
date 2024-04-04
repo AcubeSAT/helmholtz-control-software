@@ -14,10 +14,10 @@ def get_desired_magnetic_field():
     print('Command desired magnetic field for each axis in uT: ')
     desired_magnetic_field_uT_x, desired_magnetic_field_uT_y, desired_magnetic_field_uT_z = map(float, input().split())
     return np.array([desired_magnetic_field_uT_x * 10 ** -6, desired_magnetic_field_uT_y * 10 ** -6,
-                     desired_magnetic_field_uT_z * 10 ** -6])
+                     desired_magnetic_field_uT_z * 10 ** -6])   #converting microteslas to teslas
 
 
-def get_initial_magnetic_field(magnetometer):
+def get_initial_magnetic_field(magnetometer):        #read the 5th value of magnetic field, so it won't read weird/wrong values
     for i in range(5):
         initial_field = magnetometer.get_magnetic_field()
     return initial_field
@@ -76,14 +76,14 @@ if __name__ == "__main__":
         PID[i].set_reference_magnetic_field(desired_magnetic_field[i])
 
 # Open files for writing
-    with open("magnetic_field_x_values.txt", "w") as file_x, \
-         open("magnetic_field_y_values.txt", "w") as file_y, \
-         open("magnetic_field_z_values.txt", "w") as file_z, \
-         open("magnetic_field_all_values.txt", "w") as file_all, \
-         open("noise_calculation_x.txt", "w") as noise_data_x, \
-         open("noise_calculation_y.txt", "w") as noise_data_y, \
-         open("noise_calculation_z.txt", "w") as noise_data_z, \
-         open("noise_calculation_norm.txt", "w") as noise_data_norm : 
+    with open("magnetic_field_x_values.txt", "a") as file_x, \ # append data so they are not lost
+         open("magnetic_field_y_values.txt", "a") as file_y, \
+         open("magnetic_field_z_values.txt", "a") as file_z, \
+         open("magnetic_field_all_values.txt", "a") as file_all, \
+         open("noise_calculation_x.txt", "a") as noise_data_x, \
+         open("noise_calculation_y.txt", "a") as noise_data_y, \
+         open("noise_calculation_z.txt", "a") as noise_data_z, \
+         open("noise_calculation_norm.txt", "a") as noise_data_norm : 
         while 1:
             for i in range(3):
                 time.sleep(0.1)
