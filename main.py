@@ -79,7 +79,11 @@ if __name__ == "__main__":
     with open("magnetic_field_x_values.txt", "w") as file_x, \
          open("magnetic_field_y_values.txt", "w") as file_y, \
          open("magnetic_field_z_values.txt", "w") as file_z, \
-         open("magnetic_field_all_values.txt", "w") as file_all:
+         open("magnetic_field_all_values.txt", "w") as file_all, \
+         open("noise_calculation_x.txt", "w") as noise_data_x, \
+         open("noise_calculation_y.txt", "w") as noise_data_y, \
+         open("noise_calculation_z.txt", "w") as noise_data_z, \
+         open("noise_calculation_norm.txt", "w") as noise_data_norm : 
         while 1:
             for i in range(3):
                 time.sleep(0.1)
@@ -110,7 +114,15 @@ if __name__ == "__main__":
                     if coils[i].get_current() >= 0:
                         sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
                     elif coils[i].get_current() < 0:
-                        sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+                        sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])    
+            
+            # Calculate the theoretical field created by the helmholtz cage for each axis and the norm
+            th = np.array([])
+            for i in range(3):
+                th[i] = coils[i].get_current() / (1e-6 * np.pi * self.length / (
+                    2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
+                               (1 + self.gamma ** 2) * np.sqrt(2 + self.gamma ** 2)) / 2)
+            th_norm = np.sqrt(th[0] ** 2 + th[1] ** 2 + th[2] ** 2)    
         #
             while 1:
                 # print(SPD3303C.measure_current())
@@ -128,6 +140,25 @@ if __name__ == "__main__":
                 for f in [file_x, file_y, file_z, file_all]:
                     f.flush()  # Flush the buffer to ensure data is written immediately
                 time.sleep(.1)
+            
+                # Calculate noise in each axis and the norm
+                noise_x = mf[0] - initial_magnetic_field['x'] - th[0] 
+                noise_y = mf[1] - initial_magnetic_field['y'] - th[1] 
+                noise_z = mf[2] - initial_magnetic_field['z'] - th[2] 
+                noise_norm =  np.sqrt(noise_x ** 2 + noise_y ** 2 + noise_z** 2)
+
+                # Get the norm of the initial field
+                initial_norm = np.sqrt(initial_magnetic_field['x'] ** 2 + initial_magnetic_field['y'] ** 2 + initial_magnetic_field['z'] ** 2)
+
+                #write values to txt
+                noise_data_x.write(f"{noise_x} {mf[0]} {initial_magnetic_field['x']} {th[0]} ")
+                noise_data_y.write(f"{noise_y} {mf[1]} {initial_magnetic_field['y']} {th[1]} ")
+                noise_data_z.write(f"{noise_z} {mf[2]} {initial_magnetic_field['z']} {th[2]} ")
+                noise_data_norm.write(f"{noise_norm} {norm} {initial_norm} {th_norm} ")
+                for f in [noise_data_x, noise_data_y, noise_data_z, noise_data_norm]:
+                    f.flush()  # Flush the buffer to ensure data is written immediately
+                time.sleep(.1)
+
     # while 1:
     #     # TODO: get measurements from magnetometer
     #     for i in range(2):
