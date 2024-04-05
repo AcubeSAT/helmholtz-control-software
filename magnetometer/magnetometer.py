@@ -4,7 +4,7 @@ import serial
 import numpy as np
 
 class Magnetometer:
-    def __init__(self, port='/dev/ttyACM1'):
+    def __init__(self, port='/dev/ttyACM0'):
         self.com = serial.Serial(port, baudrate=9600, timeout=2)
         self.first_readings = True
         self.last_magnetic_field = [0, 0, 0]
@@ -26,5 +26,6 @@ class Magnetometer:
         magnetic_field = [0, 0, 0]
         for i, byte in enumerate(data):
             magnetic_field[i] = float(byte)
-        self.last_magnetic_field = np.matmul(np.subtract(magnetic_field,self.V),self.W)
+        # self.last_magnetic_field = np.matmul(np.subtract(magnetic_field,self.V),self.W)
+        self.last_magnetic_field = np.subtract(magnetic_field,self.V)
         return self.last_magnetic_field
