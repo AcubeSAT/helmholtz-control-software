@@ -1,5 +1,4 @@
 import numpy as np
-from coil_current_control import coil_current_control
 
 coils = {'x': 1.75,
          'y': 1.70,
