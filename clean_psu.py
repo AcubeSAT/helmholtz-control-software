@@ -22,9 +22,3 @@ if __name__ == "__main__":
     time.sleep(0.2)
     SPD3303C.set_voltage(30)
     time.sleep(0.2)
-
-    time.sleep(0.2)
-    DP712.set_current(0)
-    time.sleep(0.2)
-    DP712.set_voltage(30)
-    time.sleep(0.2)
