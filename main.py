@@ -31,9 +31,11 @@ if __name__ == "__main__":
     for _ in range(3):
         II2MDC.get_magnetic_field()
 
-    SPD3303C = PSU('CH2', 'SPD3303C')
-    time.sleep(.5)
+    SPD3303C = PSU('CH1', 'SPD3303C')
+    time.sleep(0.2)
     DP712 = PSU("CH1", 'DP712')
+    time.sleep(0.2)
+    DP712.set_overcurrent_protection()
 
     helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
     print(helmholtz_constants.initial_magnetic_field)
