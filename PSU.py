@@ -26,6 +26,21 @@ class PSU:
         self.channel = channel
         self.model = model
         self.device = pyvisa.ResourceManager().open_resource(psu)
+        print(f"PSU {self.model} succesfully connected")
+
+    def set_overcurrent_protection(self):
+        if self.model == 'DP712':
+            command = ':OUTPut:OCP:CLEAR'
+            self.device.write(command)
+            time.sleep(0.1)
+            command = ':OUTPut:OCP ON'
+            self.device.write(command) 
+            time.sleep(0.1)
+            command = ':OUTPut:OCP:VALue 3'
+            self.device.write(command)
+            print("PSU successfully sets overcurrent value")
+        else:
+            print("PSU do not have command for setting overcurrent")
 
     def set_voltage(self, voltage):
         assert voltage <= self.max_voltage
@@ -72,9 +87,9 @@ class PSU:
     def set_channel(self, channel):
         self.channel = channel
 
-    def set_voltage_and_current(self, voltage, current):
-        assert voltage <= self.max_voltage
-        assert current <= self.max_current
+    # def set_voltage_and_current(self, voltage, current):
+    #     assert voltage <= self.max_voltage
+    #     assert current <= self.max_current
 
-        command = (':APPLy ' + self.channel + ',' + str(voltage) + ',' + str(current))
-        self.device.write(command)
+    #     command = (':APPLy ' + self.channel + ',' + str(voltage) + ',' + str(current))
+    #     self.device.write(command)
