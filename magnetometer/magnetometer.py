@@ -14,18 +14,29 @@ class Magnetometer:
                   [-0.2709, -0.2597, 1.0310]]
 
     def get_magnetic_field(self):
-        a = self.com.write(b"\x00")
+        while True:
+            self.com.write(b"\x00")
+            data = self.com.readline()
 
-        data = self.com.readline()
+            if data == b"" or data == b"0":
+                continue
+            
+            #TODO: try to empty the serial buffer with a better way
+            # Read all available data to prevent buffer overflow
+            while self.com.in_waiting:
+                data += self.com.readline()
 
-        if data == b"" or data == b"0":
-            return self.last_magnetic_field
+            data = data[:-2].split(b" ")
 
-        data = data[:-2].split(b" ")
-
-        magnetic_field = [0, 0, 0]
-        for i, byte in enumerate(data):
-            magnetic_field[i] = float(byte)
-        # self.last_magnetic_field = np.matmul(np.subtract(magnetic_field,self.V),self.W)
-        self.last_magnetic_field = np.subtract(magnetic_field,self.V)
-        return self.last_magnetic_field
+            magnetic_field = [0, 0, 0]
+            for i, byte in enumerate(data):
+                try:
+                    magnetic_field[i] = float(byte)
+                except:
+                    # If conversion fails, handle the error and retry
+                    print("Error: Unable to convert byte to float.")
+                    break
+            else:
+                # If all conversions were successful, update and return the magnetic field
+                self.last_magnetic_field = np.subtract(magnetic_field, self.V)
+                return self.last_magnetic_field
