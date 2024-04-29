@@ -13,8 +13,8 @@ class PSU:
         assert model in ['DP712', 'SPD3303C']
 
         connected_devices = pyvisa.ResourceManager().list_resources()
-        # print(f"Connected devices are: {connected_devices}")
-        # print(f"length is: {len(connected_devices)}")
+        print(f"Connected devices are: {connected_devices}")
+        print(f"length is: {len(connected_devices)}")
         if len(connected_devices) > 0:
             if model == 'DP712':
                 psu = 'ASRL/dev/ttyUSB0::INSTR'
