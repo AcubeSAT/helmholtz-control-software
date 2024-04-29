@@ -27,15 +27,16 @@ if __name__ == "__main__":
 
     desired_magnetic_field = get_desired_magnetic_field()
     II2MDC = magnetometer.Magnetometer()
+    
     # loop to get the correct magnetometer values
-    for _ in range(3):
+    for _ in range(5):
         II2MDC.get_magnetic_field()
-
+    print("edw")
     SPD3303C = PSU('CH1', 'SPD3303C')
     time.sleep(0.2)
-    DP712 = PSU("CH1", 'DP712')
-    time.sleep(0.2)
-    DP712.set_overcurrent_protection()
+    # DP712 = PSU("CH1", 'DP712')
+    # time.sleep(0.2)
+    # DP712.set_overcurrent_protection()
 
     helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
     print(helmholtz_constants.initial_magnetic_field)
@@ -46,29 +47,37 @@ if __name__ == "__main__":
             coil_current_control('y', initial_magnetic_field['y']),
             coil_current_control('z', initial_magnetic_field['z'])])
 
+    print("Initialization succeeded")
 
-    for i in range(3):
-        coils[i].set_current()
-        if coils[i].axis == 'y':
-            SPD3303C.set_channel('CH1')
-            time.sleep(0.2)
-            SPD3303C.set_current(0)
-            time.sleep(0.2)
-            SPD3303C.set_voltage(30)
-            time.sleep(0.2)
-        elif coils[i].axis == 'z':
-            SPD3303C.set_channel('CH2')
-            time.sleep(0.2)
-            SPD3303C.set_current(0)
-            time.sleep(0.2)
-            SPD3303C.set_voltage(30)
-            time.sleep(0.2)
-        else:
-            time.sleep(0.2)
-            DP712.set_current(0)
-            time.sleep(0.2)
-            DP712.set_voltage(30)
-            time.sleep(0.2)
+    # for i in range(3):
+    #     coils[i].set_current()
+    #     if coils[i].axis == 'y':
+    #         SPD3303C.set_channel('CH1')
+    #         time.sleep(0.2)
+    #         SPD3303C.set_current(0)
+    #         time.sleep(0.2)
+    #         SPD3303C.set_voltage(30)
+    #         time.sleep(0.2)
+    #     elif coils[i].axis == 'z':
+    #         SPD3303C.set_channel('CH2')
+    #         time.sleep(0.2)
+    #         SPD3303C.set_current(0)
+    #         time.sleep(0.2)
+    #         SPD3303C.set_voltage(30)
+    #         time.sleep(0.2)
+    #     else:
+    #         time.sleep(0.2)
+    #         DP712.set_current(0)
+    #         time.sleep(0.2)
+    #         DP712.set_voltage(30)
+    #         time.sleep(0.2)
+    
+    SPD3303C.set_current(0)
+    time.sleep(0.2)
+    SPD3303C.set_voltage(30)
+    time.sleep(0.2)
+
+    print("Reset PSU cuurent and voltage")
 
 # Open files for writing
     with open("magnetic_field_x_values.txt", "a") as file_x: #, \
@@ -79,38 +88,52 @@ if __name__ == "__main__":
         #  open("noise_calculation_y.txt", "a") as noise_data_y, \
         #  open("noise_calculation_z.txt", "a") as noise_data_z, \
         #  open("noise_calculation_norm.txt", "a") as noise_data_norm : 
+        # while 1:
+        #     for i in range(3):
+        #         time.sleep(0.1)
+        #         coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+        #         coils[i].set_current()
+        #         if coils[i].axis == 'y':
+        #             SPD3303C.set_channel('CH1')
+        #             time.sleep(0.1)
+        #             SPD3303C.set_current(abs(coils[i].get_current()))
+        #             time.sleep(0.1)
+        #             if coils[i].get_current() >= 0:
+        #                 sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+        #             elif coils[i].get_current() < 0:
+        #                 sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+        #         elif coils[i].axis == 'z':
+        #             SPD3303C.set_channel('CH2')
+        #             time.sleep(0.1)
+        #             SPD3303C.set_current(abs(coils[i].get_current()))
+        #             time.sleep(0.1)
+        #             if coils[i].get_current() >= 0:
+        #                 sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+        #             elif coils[i].get_current() < 0:
+        #                 sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+        #         else:
+        #             time.sleep(0.1)
+        #             DP712.set_current(abs(coils[i].get_current()))
+        #             time.sleep(0.1)
+        #             if coils[i].get_current() >= 0:
+        #                 sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+        #             elif coils[i].get_current() < 0:
+        #                 sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])    
+
         while 1:
-            for i in range(3):
-                time.sleep(0.1)
-                coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
-                coils[i].set_current()
-                if coils[i].axis == 'y':
-                    SPD3303C.set_channel('CH1')
-                    time.sleep(0.1)
-                    SPD3303C.set_current(abs(coils[i].get_current()))
-                    time.sleep(0.1)
-                    if coils[i].get_current() >= 0:
-                        sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
-                    elif coils[i].get_current() < 0:
-                        sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
-                elif coils[i].axis == 'z':
-                    SPD3303C.set_channel('CH2')
-                    time.sleep(0.1)
-                    SPD3303C.set_current(abs(coils[i].get_current()))
-                    time.sleep(0.1)
-                    if coils[i].get_current() >= 0:
-                        sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
-                    elif coils[i].get_current() < 0:
-                        sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
-                else:
-                    time.sleep(0.1)
-                    DP712.set_current(abs(coils[i].get_current()))
-                    time.sleep(0.1)
-                    if coils[i].get_current() >= 0:
-                        sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
-                    elif coils[i].get_current() < 0:
-                        sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])    
-            
+            coils[0].set_desired_magnetic_field(desired_magnetic_field[0])
+            coils[0].set_current()
+            print(coils[0].get_current())
+            SPD3303C.set_channel('CH1')
+            time.sleep(0.1)
+            SPD3303C.set_current(abs(coils[0].get_current()))
+            time.sleep(0.1)
+            if coils[0].get_current() >= 0:
+                sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+            elif coils[0].get_current() < 0:
+                sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])    
+    
+
             # Calculate the theoretical field created by the helmholtz cage for each axis and the norm
             theoretical_magn = [0, 0, 0]
             for i in range(3):
@@ -119,7 +142,9 @@ if __name__ == "__main__":
                     2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
                                (1 + gamma ** 2) * np.sqrt(2 + gamma ** 2)) / 2)
             theoretical_magn_norm = np.sqrt(theoretical_magn[0] ** 2 + theoretical_magn[1] ** 2 + theoretical_magn[2] ** 2)    
-        #
+        
+            print("ftasame edw")
+
             while 1:
                 # print(SPD3303C.measure_current())
                 # time.sleep(0.1)
