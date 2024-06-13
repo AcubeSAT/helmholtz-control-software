@@ -35,6 +35,7 @@ void loop() {
     return;
   }
 
+  // we use the minus sign due to the alignment of the magnetometer with the helmholtz cage
   Serial.print(-mag_event.magnetic.x); Serial.print(" ");
   Serial.print(mag_event.magnetic.y); Serial.print(" ");
   Serial.print(-mag_event.magnetic.z); Serial.println("");
