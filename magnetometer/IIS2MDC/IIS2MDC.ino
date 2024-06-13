@@ -1,3 +1,8 @@
+/*
+This arduino code uses Adafruit_SensorLab in order to communicate
+with the magnetometer
+*/
+
 #include <Adafruit_SensorLab.h>
 
 #include <Adafruit_Sensor_Calibration.h>
@@ -23,22 +28,6 @@ void setup(void) {
   } else {
     mag->printSensorDetails();
   }
-
-//  Serial.println("Looking for a gyroscope");
-//  gyro = lab.getGyroscope();
-//  if (!gyro) {
-//    Serial.println(F("Could not find a gyroscope, skipping!"));
-//  } else {
-//    gyro->printSensorDetails();
-//  }
-//
-//  Serial.println("Looking for an accelerometer");
-//  accel = lab.getAccelerometer();
-//  if (!accel) {
-//    Serial.println(F("Could not find an accelerometer, skipping!"));
-//  } else {
-//    accel->printSensorDetails();
-//  }
 }
 
 void loop() {
@@ -46,29 +35,7 @@ void loop() {
     return;
   }
 
-  // 'Raw' values to match expectation of MOtionCal
-//  Serial.print("Raw:");
-//  Serial.print(int(accel_event.acceleration.x * 8192 / 9.8)); Serial.print(",");
-//  Serial.print(int(accel_event.acceleration.y * 8192 / 9.8)); Serial.print(",");
-//  Serial.print(int(accel_event.acceleration.z * 8192 / 9.8)); Serial.print(",");
-//  Serial.print(int(gyro_event.gyro.x * Adafruit_SensorLab::DEGREES_PER_RADIAN * 16)); Serial.print(",");
-//  Serial.print(int(gyro_event.gyro.y * Adafruit_SensorLab::DEGREES_PER_RADIAN * 16)); Serial.print(",");
-//  Serial.print(int(gyro_event.gyro.z * Adafruit_SensorLab::DEGREES_PER_RADIAN * 16)); Serial.print(",");
-//  Serial.print(int(mag_event.magnetic.x * 10)); Serial.print(",");
-//  Serial.print(int(mag_event.magnetic.y * 10)); Serial.print(",");
-//  Serial.print(int(mag_event.magnetic.z * 10)); Serial.println("");
-
-  // unified data
-//  Serial.print("Uni:");
-//  Serial.print(accel_event.acceleration.x); Serial.print(",");
-//  Serial.print(accel_event.acceleration.y); Serial.print(",");
-//  Serial.print(accel_event.acceleration.z); Serial.print(",");
-//  Serial.print(gyro_event.gyro.x, 4); Serial.print(",");
-//  Serial.print(gyro_event.gyro.y, 4); Serial.print(",");
-//  Serial.print(gyro_event.gyro.z, 4); Serial.print(",");
   Serial.print(-mag_event.magnetic.x); Serial.print(" ");
   Serial.print(mag_event.magnetic.y); Serial.print(" ");
   Serial.print(-mag_event.magnetic.z); Serial.println("");
-
-//  Serial.end();
 }
