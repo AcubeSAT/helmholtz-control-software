@@ -73,6 +73,7 @@ void loop() {
   
   if(Serial.available()>0){
     value = Serial.read(); 
+    //int value = 0x10;
     set_sign(value);
     Serial.flush();
     value = 0;
