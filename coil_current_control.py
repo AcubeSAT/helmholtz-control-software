@@ -31,6 +31,9 @@ class coil_current_control:
 
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
+    def set_current_hardcoded(self, current):
+        self.current = current
+
     def get_current(self):
         return self.current
 
