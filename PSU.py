@@ -8,13 +8,13 @@ class PSU:
 
     def __init__(self, channel='CH1', model='DP712'):
         self.max_current = 3
-        self.max_voltage = 50
+        self.max_voltage = 30
 
         assert model in ['DP712', 'SPD3303C']
 
         connected_devices = pyvisa.ResourceManager().list_resources()
         print(f"Connected devices are: {connected_devices}")
-        print(f"length is: {len(connected_devices)}")
+        # print(f"length is: {len(connected_devices)}")
         if len(connected_devices) > 0:
             if model == 'DP712':
                 psu = 'ASRL/dev/ttyUSB0::INSTR'
@@ -86,10 +86,3 @@ class PSU:
 
     def set_channel(self, channel):
         self.channel = channel
-
-    # def set_voltage_and_current(self, voltage, current):
-    #     assert voltage <= self.max_voltage
-    #     assert current <= self.max_current
-
-    #     command = (':APPLy ' + self.channel + ',' + str(voltage) + ',' + str(current))
-    #     self.device.write(command)
