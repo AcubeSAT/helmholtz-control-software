@@ -2,7 +2,6 @@ import numpy as np
 import time
 
 import helmholtz_constants
-from PID import PID
 from PSU import PSU
 from coil_current_control import coil_current_control
 from helmholtz_constants import initial_magnetic_field
