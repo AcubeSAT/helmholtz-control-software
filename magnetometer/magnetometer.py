@@ -1,5 +1,3 @@
-import time
-
 import serial
 import numpy as np
 
