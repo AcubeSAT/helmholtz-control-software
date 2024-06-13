@@ -55,30 +55,29 @@ if __name__ == "__main__":
         coils[i].set_current()
         if coils[i].axis == 'y':
             SPD3303C.set_channel('CH1')
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_current(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_voltage(30)
-            time.sleep(0.2)
+            time.sleep(0.1)
         elif coils[i].axis == 'z':
             SPD3303C.set_channel('CH2')
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_current(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             SPD3303C.set_voltage(30)
-            time.sleep(0.2)
+            time.sleep(0.1)
         else:
-            time.sleep(0.2)
+            time.sleep(0.1)
             DP712.set_current(0)
-            time.sleep(0.2)
+            time.sleep(0.1)
             DP712.set_voltage(30)
-            time.sleep(0.2)
+            time.sleep(0.1)
 
     print("Reset PSU current and voltage")
 
     # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
     for i in range(3):
-        time.sleep(0.1)
         coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
         coils[i].set_current()
         if coils[i].axis == 'y':
