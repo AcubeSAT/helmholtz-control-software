@@ -78,7 +78,7 @@ def main():
     try:
         check_version(ser)
         run_self_test(ser)
-        start_sensor(ser, sensor_id=2, data_rate=200)  # Based on the datasheet
+        start_sensor(ser, sensor_id=2, data_rate=100)  # Based on the datasheet
         display_sensor_data(ser)
         read_sensor_data(ser, duration=10)  # Read sensor data for 10 seconds
 
