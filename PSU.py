@@ -8,29 +8,39 @@ class PSU:
 
     def __init__(self, channel='CH1', model='DP712'):
         self.max_current = 3
-        self.max_voltage = 50
+        self.max_voltage = 30
 
         assert model in ['DP712', 'SPD3303C']
 
         connected_devices = pyvisa.ResourceManager().list_resources()
-        if len(connected_devices) > 1:
+        print(f"Connected devices are: {connected_devices}")
+        # print(f"length is: {len(connected_devices)}")
+        if len(connected_devices) > 0:
             if model == 'DP712':
                 psu = 'ASRL/dev/ttyUSB0::INSTR'
             else:
                 psu = 'USB0::1155::30016::SPD3EEEC6R0509::0::INSTR'
         else:
-            psu = 'ASRL/dev/ttyUSB0::INSTR'
+            print("There are not connected devices")
 
         self.channel = channel
         self.model = model
         self.device = pyvisa.ResourceManager().open_resource(psu)
+        print(f"PSU {self.model} connected succesfully")
 
-    def set_voltage_and_current(self, voltage, current):
-        assert voltage <= self.max_voltage
-        assert current <= self.max_current
-
-        command = (':APPLy ' + self.channel + ',' + str(voltage) + ',' + str(current))
-        self.device.write(command)
+    def set_overcurrent_protection(self):
+        if self.model == 'DP712':
+            command = ':OUTP:OCP:CLEAR'
+            self.device.write(command)
+            time.sleep(0.1)
+            command = ':OUTP:OCP ON'
+            self.device.write(command) 
+            time.sleep(0.1)
+            command = ':OUTP:OCP:VALue 3'
+            self.device.write(command)
+            print(f"PSU {self.model} sets overcurrent value successfully")
+        else:
+            print(f"PSU {self.model} do not have command for setting overcurrent")
 
     def set_voltage(self, voltage):
         assert voltage <= self.max_voltage
