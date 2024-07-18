@@ -9,14 +9,14 @@ def initialize_serial(port, baudrate=115200, timeout=1):
 def send_command(ser, command):
     """Send a command to the device."""
     command += '\r'  # Append carriage return
-    print(f"Sending command: {command}")
+    # print(f"Sending command: {command}")
     ser.write(command.encode())
 
 def read_response(ser):
     """Read the response from the device."""
-    time.sleep(0.5)  # Wait for the response
+    time.sleep(0.1)  # Wait for the response
     response = ser.read_all().decode().strip()
-    print(f"Response: {response}")
+    # print(f"Response: {response}")
     return response
 
 def check_version(ser):
@@ -67,9 +67,10 @@ def read_sensor_data(ser, duration=10):
             x_y_z_values = parse_magnetic_field_data(data)
             if x_y_z_values:
                 x, y, z = x_y_z_values
-                print(f"X-Axis: {x} µT")
-                print(f"Y-Axis: {y} µT")
-                print(f"Z-Axis: {z} µT")
+                print(f'{x} {y} {z}')
+                # print(f"X-Axis: {x} µT")
+                # print(f"Y-Axis: {y} µT")
+                # print(f"Z-Axis: {z} µT")
 
 def main():
     port = '/dev/ttyUSB0'  # Replace with the correct port for your device
