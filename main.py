@@ -33,9 +33,9 @@ if __name__ == "__main__":
 
     # Initialize PSUs
     SPD3303C = PSU('CH1', 'SPD3303C')
-    time.sleep(0.2)
+    time.sleep(0.1)
     DP712 = PSU("CH1", 'DP712')
-    time.sleep(0.2)
+    time.sleep(0.1)
     DP712.set_overcurrent_protection()
 
     # Initialize magnetic field values from magnetometer
@@ -109,12 +109,12 @@ if __name__ == "__main__":
 
     print("Successfully set current to PSUs and send current sign to rele")
 
-    # # Sets the desired current values to PSUs hardcoded, without transormation using magnetic field and sends the desired commands to rele
+    # Sets the desired current values to PSUs hardcoded, without transormation using magnetic field and sends the desired commands to rele
     # value_zero = 0
     # value_desired = 1
     # for i in range(3):
     #     if coils[i].axis == 'y':
-    #         coils[i].set_current_hardcoded(value_zero)
+    #         coils[i].set_current_hardcoded(0.350)
     #         SPD3303C.set_channel('CH1')
     #         time.sleep(0.1)
     #         SPD3303C.set_current(abs(coils[i].get_current()))
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     #         elif coils[i].get_current() < 0:
     #             sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
     #     elif coils[i].axis == 'z':
-    #         coils[i].set_current_hardcoded(value_zero)
+    #         coils[i].set_current_hardcoded(0.590)
     #         SPD3303C.set_channel('CH2')
     #         time.sleep(0.1)
     #         SPD3303C.set_current(abs(coils[i].get_current()))
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     #         elif coils[i].get_current() < 0:
     #             sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
     #     else:
-    #         coils[i].set_current_hardcoded(value_desired)
+    #         coils[i].set_current_hardcoded(0.05)
     #         DP712.set_current(abs(coils[i].get_current()))
     #         time.sleep(0.1)
     #         if coils[i].get_current() >= 0:
@@ -160,19 +160,28 @@ if __name__ == "__main__":
     # time.sleep(0.1)
 
     # Prints magnetic field values and norm
-    while 1:
-        magnetic_field = II2MDC.get_magnetic_field()
-        norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
-        print(f"Magnetic field: {II2MDC.get_magnetic_field()} Norm: {norm}")
+    # while 1:
+    #     magnetic_field = II2MDC.get_magnetic_field()
+    #     norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
+    #     print(f"Magnetic field: {II2MDC.get_magnetic_field()} Norm: {norm}")
     
-        # Calculate noise in each axis and the norm
-        noise_x = magnetic_field[0] * 1e-6 - initial_magnetic_field['x'] - theoretical_magn[0] 
-        noise_y = magnetic_field[1] * 1e-6 - initial_magnetic_field['y'] - theoretical_magn[1]
-        noise_z = magnetic_field[2] * 1e-6 - initial_magnetic_field['z'] - theoretical_magn[2]
-        noise_norm =  np.sqrt(noise_x ** 2 + noise_y ** 2 + noise_z** 2)
-        print(f"Magnetic field noise per axis, x:{noise_x}, y:{noise_y}, z:{noise_z} and Norm noise: {noise_norm}")
+    # # Open the file in append mode
+    # with open("magnetic_field.txt", "a") as file:
+    #     # Writes magnetic field values and norm
+    #     while True:
+    #         magnetic_field = II2MDC.get_magnetic_field()
+    #         norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
+    #         print(f"Magnetic field: {magnetic_field} Norm: {norm}")
+    #         file.write(f"Magnetic field: {magnetic_field} Norm: {norm}\n")
 
-        # Get the norm of the initial field
-        initial_norm = np.sqrt(initial_magnetic_field['x'] ** 2 + initial_magnetic_field['y'] ** 2 + initial_magnetic_field['z'] ** 2)
-        print(f"Magnetic field: {II2MDC.get_magnetic_field()} Norm: {norm}")
+        # # Calculate noise in each axis and the norm
+        # noise_x = magnetic_field[0] * 1e-6 - initial_magnetic_field['x'] - theoretical_magn[0] 
+        # noise_y = magnetic_field[1] * 1e-6 - initial_magnetic_field['y'] - theoretical_magn[1]
+        # noise_z = magnetic_field[2] * 1e-6 - initial_magnetic_field['z'] - theoretical_magn[2]
+        # noise_norm =  np.sqrt(noise_x ** 2 + noise_y ** 2 + noise_z** 2)
+        # print(f"Magnetic field noise per axis, x:{noise_x}, y:{noise_y}, z:{noise_z} and Norm noise: {noise_norm}")
+
+        # # Get the norm of the initial field
+        # initial_norm = np.sqrt(initial_magnetic_field['x'] ** 2 + initial_magnetic_field['y'] ** 2 + initial_magnetic_field['z'] ** 2)
+        # print(f"Magnetic field: {II2MDC.get_magnetic_field()} Norm: {norm}")
 
