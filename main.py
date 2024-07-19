@@ -6,6 +6,7 @@ from PSU import PSU
 from coil_current_control import coil_current_control
 from helmholtz_constants import initial_magnetic_field
 from magnetometer import magnetometer
+from magnetometer import PNI_magnetometer
 from h_bridge import sent_sign
 from scipy import constants
 
@@ -20,7 +21,7 @@ def get_desired_magnetic_field():
 def get_initial_magnetic_field(magnetometer):
     # Needs almost five iretations in order to take the correct values from magnetometer
     for i in range(5):
-        initial_field = magnetometer.get_magnetic_field() * 1e-6
+        initial_field = magnetometer.read_sensor_data()
     return initial_field
 
 
@@ -29,7 +30,11 @@ if __name__ == "__main__":
     desired_magnetic_field = get_desired_magnetic_field()
     
     # Initialize magnetometer
-    II2MDC = magnetometer.Magnetometer()
+    # II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
+    magnetometer = PNI_magnetometer.PNI_magnetometer(port='/dev/ttyUSB0')
+    magnetometer.run_self_test()
+    magnetometer.start_sensor(sensor_id=2, data_rate=100)
+    magnetometer.display_sensor_data()
 
     # Initialize PSUs
     SPD3303C = PSU('CH1', 'SPD3303C')
@@ -39,7 +44,7 @@ if __name__ == "__main__":
     DP712.set_overcurrent_protection()
 
     # Initialize magnetic field values from magnetometer
-    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=II2MDC)
+    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=PNI_magnetometer)
     print(f"Initial magnetic field: {helmholtz_constants.initial_magnetic_field}")
 
     coils = np.array(
@@ -160,10 +165,10 @@ if __name__ == "__main__":
     # time.sleep(0.1)
 
     # Prints magnetic field values and norm
-    # while 1:
-    #     magnetic_field = II2MDC.get_magnetic_field()
-    #     norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
-    #     print(f"Magnetic field: {II2MDC.get_magnetic_field()} Norm: {norm}")
+    while 1:
+        magnetic_field = PNI_magnetometer.read_sensor_data()
+        norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
+        print(f"Magnetic field: {PNI_magnetometer.read_sensor_data()} Norm: {norm}")
     
     # # Open the file in append mode
     # with open("magnetic_field.txt", "a") as file:
