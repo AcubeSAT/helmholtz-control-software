@@ -20,7 +20,8 @@ class PNI_magnetometer:
 
     def check_version(self):
         """Check the version of the device."""
-        response = self.send_command('v')
+        self.send_command('v')
+        response = self.read_response()
         print(f"Device Version: {response}")
 
     def run_self_test(self):
@@ -53,24 +54,30 @@ class PNI_magnetometer:
         """Parse a single line of magnetic field data and return X, Y, Z values."""
         fields = data.split(',')
         if len(fields) >= 6 and fields[1].strip() == 'magnetic field':
+            # print(fields[2].strip())
+            # print(fields[3].strip())
+            # print(fields[4].strip())
             x_value = float(fields[2].strip())
             y_value = float(fields[3].strip())
             z_value = float(fields[4].strip())
+            # magn_score = float(fields[5].strip())
             return x_value, y_value, z_value
         else:
             return None
-
-    def read_sensor_data(self, duration=1):
-        """Read sensor data for a specified duration in seconds."""
-        end_time = time.time() + duration
-        while time.time() < end_time:
-            if self.ser.in_waiting:
-                data = self.ser.readline().decode().strip()
-                x_y_z_values = self.parse_magnetic_field_data(data)
-                if x_y_z_values:
-                    return x_y_z_values
-        return 0.0, 0.0, 0.0  # Return default values if no data is read
     
+    def read_sensor_data(self,):
+        """Read sensor data for a specified duration in seconds."""
+        while True:
+            try:
+                if self.ser.in_waiting:
+                    data = self.ser.readline().decode().strip()
+                    x_y_z_values = self.parse_magnetic_field_data(data)
+                    if x_y_z_values:
+                        return x_y_z_values
+            except:
+                print("Wait for proper value format")
+
     def close(self):
         """Close the serial connection."""
         self.ser.close()
+        print("Device closed successfully")
