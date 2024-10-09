@@ -5,9 +5,9 @@ coils = {'x': 1.75,
          'z': 1.65
          }
 
-initial_magnetic_field = {'x': 10 ** -7,
-                          'y': 6.4 * 10 ** -6,
-                          'z': 10 ** -7
+initial_magnetic_field = {'x': 0,
+                          'y': 0,
+                          'z': 0
                           }
 
 axis_current = {'x': 1,
