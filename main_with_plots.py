@@ -44,7 +44,11 @@ def main():
     DP712.set_overcurrent_protection()
 
     # Initialize magnetic field values from magnetometer
-    initial_field = II2MDC.get_magnetic_field()
+
+    for i in range(5):
+        initial_field = magnetometer.read_sensor_data()
+        time.sleep(0.1)  # Added slight delay between readings
+
     helmholtz_constants.initial_magnetic_field['x'] = initial_field[0]
     helmholtz_constants.initial_magnetic_field['y'] = initial_field[1]
     helmholtz_constants.initial_magnetic_field['z'] = initial_field[2]
@@ -92,7 +96,7 @@ def main():
     start_time = time.time()
 
     # Duration to run the loop (in seconds)
-    duration = 20
+    duration = 30
 
     print("Starting measurement loop for 30 seconds...")
 
@@ -104,28 +108,33 @@ def main():
             if elapsed_time > duration:
                 print("Measurement duration completed.")
                 break
-
-
-            # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
+            
+             # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
             for coil in coils:
-                coil.set_desired_magnetic_field(desired_magnetic_field[['x', 'y', 'z'].index(coil.axis)])
+                coil.set_desired_magnetic_field(desired_magnetic_field[['x', 'y', 'z'].tolist().index(coil.axis)])
                 coil.set_current()
                 if coil.axis == 'y':
                     SPD3303C.set_channel('CH1')
+                    # time.sleep(0.1)
                     SPD3303C.set_current(abs(coil.get_current()))
+                    # time.sleep(0.1)
                     if coil.get_current() >= 0:
                         sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
                     else:
                         sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
                 elif coil.axis == 'z':
                     SPD3303C.set_channel('CH2')
+                    # time.sleep(0.1)
                     SPD3303C.set_current(abs(coil.get_current()))
+                    # time.sleep(0.1)
                     if coil.get_current() >= 0:
                         sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
                     else:
                         sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
                 else:
+                    # time.sleep(0.1)
                     DP712.set_current(abs(coil.get_current()))
+                    # time.sleep(0.1)
                     if coil.get_current() >= 0:
                         sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
                     else:
@@ -142,8 +151,8 @@ def main():
             timestamps.append(elapsed_time)
             measured_fields.append(magnetic_field.copy())
 
-            # Optional: Sleep to control loop frequency (e.g., 20 Hz)
-            time.sleep(0.05)
+            # Optional: Sleep to control loop frequency (e.g., 10 Hz)
+            time.sleep(0.1)
 
     except KeyboardInterrupt:
         print("Measurement interrupted by user.")
@@ -152,23 +161,22 @@ def main():
     measured_fields = np.array(measured_fields)  # Shape: (num_samples, 3)
 
     # Plotting
-    plt.figure(figsize=(12, 6))
-
     axes = ['x', 'y', 'z']
     colors = ['r', 'g', 'b']
 
-    for i in range(3):
-        plt.plot(timestamps, measured_fields[:, i] * 1e6, label=f"Measured {axes[i]}-axis", color=colors[i])
-        plt.hlines(desired_magnetic_field[i] * 1e6, 0, duration, colors=colors[i], linestyles='dashed', label=f"Desired {axes[i]}-axis")
+    fig, axs = plt.subplots(3, 1, figsize=(12, 18))  # Three separate subplots
 
-    plt.xlabel('Time (s)')
-    plt.ylabel('Magnetic Field (µT)')
-    plt.title('Helmholtz Cage Magnetic Field Response')
-    plt.legend()
-    plt.grid(True)
+    for i in range(3):
+        axs[i].plot(timestamps, measured_fields[:, i] * 1e6, label=f"Measured {axes[i]}-axis", color=colors[i])
+        axs[i].hlines(desired_magnetic_field[i] * 1e6, 0, duration, colors=colors[i], linestyles='dashed', label=f"Desired {axes[i]}-axis")
+        axs[i].set_xlabel('Time (s)')
+        axs[i].set_ylabel('Magnetic Field (µT)')
+        axs[i].set_title(f'Helmholtz Cage Magnetic Field Response - {axes[i].upper()} Axis')
+        axs[i].legend()
+        axs[i].grid(True)
+
     plt.tight_layout()
     plt.show()
-
 
 if __name__ == "__main__":
     main()
