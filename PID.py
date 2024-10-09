@@ -63,6 +63,3 @@ class PID:
 
         assert abs(self.current_measured) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
-
-    def get_current(self):
-        return self.current_measured
