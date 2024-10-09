@@ -27,9 +27,13 @@ if __name__ == "__main__":
     magnetic_field_value_list = []
 
     desired_magnetic_field = get_desired_magnetic_field()
-    
+
     # Initialize magnetometer
-    II2MDC = magnetometer.Magnetometer()
+    II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
+    # magnetometer = PNI_magnetometer.PNI_magnetometer(port='/dev/ttyUSB0')
+    # magnetometer.run_self_test()
+    # magnetometer.start_sensor(sensor_id=2, data_rate=100)
+    # magnetometer.display_sensor_data()
 
     # Initialize PSUs
     SPD3303C = PSU('CH1', 'SPD3303C')
@@ -38,19 +42,19 @@ if __name__ == "__main__":
     time.sleep(0.1)
     DP712.set_overcurrent_protection()
 
-
-    # loop to get the correct magnetometer values
-    for _ in range(5):
-        ambient_magnetic_field = II2MDC.get_magnetic_field()
-
     # Initialize magnetic field values from magnetometer
-    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = ambient_magnetic_field
+    for i in range(5):
+        initial_field = II2MDC.get_magnetic_field()
+    helmholtz_constants.initial_magnetic_field['x'] = initial_field[0]
+    helmholtz_constants.initial_magnetic_field['y'] = initial_field[1]
+    helmholtz_constants.initial_magnetic_field['z'] = initial_field[2]
+    print(f"Initial magnetic field: {helmholtz_constants.initial_magnetic_field}")
 
-    coils = np.array(
-        [
-            coil_current_control('x', initial_magnetic_field['x']),
-            coil_current_control('y', initial_magnetic_field['y']),
-            coil_current_control('z', initial_magnetic_field['z'])])
+    coils = np.array([
+        coil_current_control('x', helmholtz_constants.initial_magnetic_field['x']),
+        coil_current_control('y', helmholtz_constants.initial_magnetic_field['y']),
+        coil_current_control('z', helmholtz_constants.initial_magnetic_field['z'])
+    ])
 
     PID = [PID(), PID(), PID()]
 
@@ -88,14 +92,14 @@ if __name__ == "__main__":
             DP712.set_voltage(30)
             time.sleep(0.1)
 
-        PID[i].set_reference_current(input_magnetic_field_output_current(desired_magnetic_field[i] - ambient_magnetic_field[i], coils_length[i]))
+        PID[i].set_reference_current(input_magnetic_field_output_current(desired_magnetic_field[i] - initial_field[i], coils_length[i]))
         PID[i].update_errors()
         current_value_instance[i] = PID[i].get_measured_current()
-        magnetic_field_value_instance[i] = ambient_magnetic_field[i]
+        magnetic_field_value_instance[i] = initial_field[i]
         current_error_instance[i] = PID[i].get_reference_current() - PID[i].get_measured_current()
-        magnetic_field_error_instance[i] = desired_magnetic_field[i] - ambient_magnetic_field[i]
+        magnetic_field_error_instance[i] = desired_magnetic_field[i] - initial_field[i]
 
-    # save the first set of data after all the initializations
+    # Save the first set of data after all the initializations
     current_value_list.append(current_value_instance)
     magnetic_field_value_list.append(magnetic_field_value_instance)
     current_error_list.append(current_error_instance)
@@ -103,7 +107,6 @@ if __name__ == "__main__":
 
     print("Reset PSU current and voltage")
 
-    #NOTE: The time of sleep is huge for a proper control loop, play with it nad try to tue it
     # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
     while 1:
         # calculate current from PID, send absolute value of this current to PSU and send the sign of the current value to arduino
@@ -111,26 +114,26 @@ if __name__ == "__main__":
             PID[i].calculate_current()
             if coils[i].axis == 'y':
                 SPD3303C.set_channel('CH1')
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 SPD3303C.set_current(abs(PID[i].get_current()))
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 if PID[i].get_current() >= 0:
                     sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
                 elif PID[i].get_current() < 0:
                     sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
             elif coils[i].axis == 'z':
                 SPD3303C.set_channel('CH2')
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 SPD3303C.set_current(abs(PID[i].get_current()))
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 if PID[i].get_current() >= 0:
                     sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
                 elif PID[i].get_current() < 0:
                     sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
             else:
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 DP712.set_current(abs(PID[i].get_current()))
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 if PID[i].get_current() >= 0:
                     sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
                 elif PID[i].get_current() < 0:
@@ -139,7 +142,7 @@ if __name__ == "__main__":
         # get new values from magnetometer, update the PID and save the data
         magnetic_field_measured = II2MDC.get_magnetic_field()
         for i in range(3):
-            PID[i].set_measured_current(input_magnetic_field_output_current(magnetic_field_measured[i] - ambient_magnetic_field[i]))
+            PID[i].set_measured_current(input_magnetic_field_output_current(magnetic_field_measured[i] - initial_field[i]))
             PID[i].update_errors()
             current_value_instance[i] = PID[i].get_measured_current()
             magnetic_field_value_instance[i] = magnetic_field_measured[i]
