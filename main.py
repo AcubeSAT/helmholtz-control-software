@@ -30,11 +30,11 @@ if __name__ == "__main__":
     desired_magnetic_field = get_desired_magnetic_field()
     
     # Initialize magnetometer
-    # II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
-    magnetometer = PNI_magnetometer.PNI_magnetometer(port='/dev/ttyUSB0')
-    magnetometer.run_self_test()
-    magnetometer.start_sensor(sensor_id=2, data_rate=100)
-    magnetometer.display_sensor_data()
+    II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
+    # magnetometer = PNI_magnetometer.PNI_magnetometer(port='/dev/ttyUSB0')
+    # magnetometer.run_self_test()
+    # magnetometer.start_sensor(sensor_id=2, data_rate=100)
+    # magnetometer.display_sensor_data()
 
     # Initialize PSUs
     SPD3303C = PSU('CH1', 'SPD3303C')
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     DP712.set_overcurrent_protection()
 
     # Initialize magnetic field values from magnetometer
-    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = get_initial_magnetic_field(magnetometer=PNI_magnetometer)
+    helmholtz_constants.initial_magnetic_field['x'], helmholtz_constants.initial_magnetic_field['y'],helmholtz_constants.initial_magnetic_field['z'] = II2MDC.get_magnetic_field
     print(f"Initial magnetic field: {helmholtz_constants.initial_magnetic_field}")
 
     coils = np.array(
@@ -149,44 +149,14 @@ if __name__ == "__main__":
 
     # print("Successfully set current to PSUs and send current sign to rele")
 
-    # Calculate the theoretical field created by the helmholtz cage for each axis and the norm
-    theoretical_magn = [0, 0, 0]
-    for i in range(3):
-        gamma = helmholtz_constants.beta / helmholtz_constants.coils[coils[i].axis]
-        theoretical_magn[i] = coils[i].get_current() / (np.pi * helmholtz_constants.coils[coils[i].axis] / (
-            2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
-                        (1 + gamma ** 2) * np.sqrt(2 + gamma ** 2)) / 2)
-    theoretical_magn_norm = np.sqrt(theoretical_magn[0] ** 2 + theoretical_magn[1] ** 2 + theoretical_magn[2] ** 2)    
-
-    # If you uncomment the next three lines you will take the values of current based on sensors at the output of PSU channels
-    # print(SPD3303C.measure_current())
-    # time.sleep(0.1)
-    # print(DP712.measure_current())
-    # time.sleep(0.1)
-
-    # Prints magnetic field values and norm
+    # Prints magnetic field values and norm of the magnetic field
     while 1:
         magnetic_field = PNI_magnetometer.read_sensor_data()
         norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
         print(f"Magnetic field: {PNI_magnetometer.read_sensor_data()} Norm: {norm}")
     
-    # # Open the file in append mode
-    # with open("magnetic_field.txt", "a") as file:
-    #     # Writes magnetic field values and norm
-    #     while True:
-    #         magnetic_field = II2MDC.get_magnetic_field()
-    #         norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
-    #         print(f"Magnetic field: {magnetic_field} Norm: {norm}")
-    #         file.write(f"Magnetic field: {magnetic_field} Norm: {norm}\n")
-
-        # # Calculate noise in each axis and the norm
-        # noise_x = magnetic_field[0] * 1e-6 - initial_magnetic_field['x'] - theoretical_magn[0] 
-        # noise_y = magnetic_field[1] * 1e-6 - initial_magnetic_field['y'] - theoretical_magn[1]
-        # noise_z = magnetic_field[2] * 1e-6 - initial_magnetic_field['z'] - theoretical_magn[2]
-        # noise_norm =  np.sqrt(noise_x ** 2 + noise_y ** 2 + noise_z** 2)
-        # print(f"Magnetic field noise per axis, x:{noise_x}, y:{noise_y}, z:{noise_z} and Norm noise: {noise_norm}")
-
-        # # Get the norm of the initial field
-        # initial_norm = np.sqrt(initial_magnetic_field['x'] ** 2 + initial_magnetic_field['y'] ** 2 + initial_magnetic_field['z'] ** 2)
-        # print(f"Magnetic field: {II2MDC.get_magnetic_field()} Norm: {norm}")
+        # Get the norm of the initial field
+        magnetic_field = II2MDC.get_magnetic_field()
+        initial_norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
+        print(f"Magnetic field: {magnetic_field} Norm: {norm}")
 
