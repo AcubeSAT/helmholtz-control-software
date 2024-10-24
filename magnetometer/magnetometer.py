@@ -2,12 +2,12 @@ import serial
 import numpy as np
 
 class Magnetometer:
-    def __init__(self, port='/dev/ttyACM1'):
+    def __init__(self, port='/dev/ttyACM0'):
         self.com = serial.Serial(port, baudrate=115200, timeout=2)
         self.first_readings = True
         self.last_magnetic_field = [0, 0, 0]
         # self.V = [-24, -1.725, 44.475]
-        self.V = [-24.375, -4.35, 43.125]
+        self.V = [-26, -9.5, 49]
         # This W 3x3 matrix origins is still a mystery
         self.W = [[1.0017, -0.1847, 0.2167],
                   [-0.1240, -1.0088, -0.2867],
@@ -37,4 +37,6 @@ class Magnetometer:
             else:
                 # If all conversions were successful, update and return the magnetic field
                 self.last_magnetic_field = np.subtract(magnetic_field, self.V)
+                self.last_magnetic_field[0] = - self.last_magnetic_field[0]
+                self.last_magnetic_field[2] = - self.last_magnetic_field[2]
                 return self.last_magnetic_field
