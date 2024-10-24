@@ -66,9 +66,12 @@ void loop() {
 //  Serial.print(gyro_event.gyro.x, 4); Serial.print(",");
 //  Serial.print(gyro_event.gyro.y, 4); Serial.print(",");
 //  Serial.print(gyro_event.gyro.z, 4); Serial.print(",");
-  Serial.print(-mag_event.magnetic.x); Serial.print(" ");
+//  Serial.print(-(mag_event.magnetic.x-26)); Serial.print(" ");
+//  Serial.print(mag_event.magnetic.y-9.5); Serial.print(" ");
+//  Serial.print(-(mag_event.magnetic.z+49)); Serial.println("");
+  Serial.print(mag_event.magnetic.x); Serial.print(" ");
   Serial.print(mag_event.magnetic.y); Serial.print(" ");
-  Serial.print(-mag_event.magnetic.z); Serial.println("");
+  Serial.print(mag_event.magnetic.z); Serial.println("");
 
 //  Serial.end();
 }
