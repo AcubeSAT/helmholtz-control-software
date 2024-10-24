@@ -4,12 +4,13 @@ from scipy import constants
 
 class coil_current_control:
 
-    def __init__(self, axis, desired_magnetic_field):
+    def __init__(self, axis, desired_magnetic_field, initial_magnetic_field):
         self.axis = axis
         self.current = 0
         self.length = helmholtz_constants.coils[axis]
-        self.initial_magnetic_field = helmholtz_constants.initial_magnetic_field[axis]
+        self.initial_magnetic_field = initial_magnetic_field
         self.desired_magnetic_field = desired_magnetic_field
+        self.D = 0.9
 
     def get_desired_magnetic_field(self):
         return self.desired_magnetic_field
@@ -24,11 +25,15 @@ class coil_current_control:
 
             Returns: the current that needs to be applied
         """
-        self.gamma = helmholtz_constants.beta / self.length
-        self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * np.pi * self.length) / (
-                2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
-                               (1 + self.gamma ** 2) * np.sqrt(2 + self.gamma ** 2)) / 2
+        # self.gamma = helmholtz_constants.beta / self.length
+        # self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * np.pi * self.length) / (
+        #         2 * constants.mu_0 * helmholtz_constants.wire_turns) * (
+        #                        (1 + self.gamma ** 2) * np.sqrt(2 + self.gamma ** 2)) / 2
+        
+        g = 8 * self.length / ((self.length**2 + self.D**2) * np.sqrt(2*self.length**2 + self.D**2))
 
+        self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * np.pi) / (constants.mu_0 * helmholtz_constants.wire_turns * g)
+        
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
     def set_current_hardcoded(self, current):
