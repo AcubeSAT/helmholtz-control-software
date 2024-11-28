@@ -7,7 +7,7 @@ class Magnetometer:
         self.first_readings = True
         self.last_magnetic_field = [0, 0, 0]
         # self.V = [-24, -1.725, 44.475]
-        self.V = [-24.375, -4.35, 43.125]
+        self.V = [-19.8, -12, 45]
         # This W 3x3 matrix origins is still a mystery
         self.W = [[1.0017, -0.1847, 0.2167],
                   [-0.1240, -1.0088, -0.2867],
@@ -37,4 +37,7 @@ class Magnetometer:
             else:
                 # If all conversions were successful, update and return the magnetic field
                 self.last_magnetic_field = np.subtract(magnetic_field, self.V)
+                # self.last_magnetic_field[0] = - self.last_magnetic_field[0]
+                self.last_magnetic_field[1] = - self.last_magnetic_field[1]
+                self.last_magnetic_field[2] = - self.last_magnetic_field[2]
                 return self.last_magnetic_field

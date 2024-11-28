@@ -35,10 +35,9 @@ def get_desired_magnetic_field():
 def main():
     # Initialize lists for saving data
     timestamps = []
-    current_error_list = []
     magnetic_field_error_list = []
-    current_value_list = []
     magnetic_field_value_list = []
+    current_value_list = []
 
     # Get desired magnetic field from user
     desired_magnetic_field = get_desired_magnetic_field()
@@ -47,7 +46,7 @@ def main():
     start_time = time.time()
 
     # Duration to run the loop (in seconds)
-    duration = 12  # You can modify this as needed
+    duration = 15 # You can modify this as needed
 
     # Initialize magnetometer
     II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
@@ -126,22 +125,16 @@ def main():
 
         # Set reference current for PID controllers
         # Assuming input_magnetic_field_output_current returns the required current
-        current_reference = input_magnetic_field_output_current(
-            desired_magnetic_field[i] - initial_field[i],
-            coils_length[i]
-        )
-        pid_controllers[i].set_reference_current(current_reference)
+        pid_controllers[i].set_desired_mf(desired_magnetic_field[i])
         pid_controllers[i].update_errors()
-        current_value_instance[i] = pid_controllers[i].get_current_measured()
         magnetic_field_value_instance[i] = initial_field[i]
-        current_error_instance[i] = pid_controllers[i].get_reference_current() - pid_controllers[i].get_current_measured()
-        magnetic_field_error_instance[i] = desired_magnetic_field[i] - initial_field[i]
+        magnetic_field_error_instance[i] = initial_field[i] - desired_magnetic_field[i]
+        current_value_instance[i] = 0
 
     # Save the first set of data after all the initializations
-    current_value_list.append(current_value_instance.copy())
     magnetic_field_value_list.append(magnetic_field_value_instance.copy())
-    current_error_list.append(current_error_instance.copy())
     magnetic_field_error_list.append(magnetic_field_error_instance.copy())
+    current_value_list.append(current_value_instance.copy())
     timestamps.append(0)
 
     print("Reset PSU current and voltage")
@@ -159,7 +152,9 @@ def main():
 
             # Update PID controllers and set PSU currents
             for i in range(3):
-                pid_controllers[i].calculate_current()
+                pid_controllers[i].calculate_mf()
+                pid_controllers[i].set_measured_current(input_magnetic_field_output_current(pid_controllers[i].get_mf_control(), coils_length[i]))
+                print(pid_controllers[i].get_current_measured())
 
                 # Set PSU current and sign based on the axis
                 if coils[i].axis == 'y':
@@ -200,37 +195,29 @@ def main():
 
             # Update PID controllers with measured data
             for i in range(3):
-                # Calculate the measured magnetic field relative to initial field
-                measured_field_relative = magnetic_field_measured[i] - initial_field[i]
-                # Convert measured magnetic field error to current (assuming input_magnetic_field_output_current handles this)
-                measured_current = input_magnetic_field_output_current(measured_field_relative, coils_length[i])
-                pid_controllers[i].set_measured_current(measured_current)
+                pid_controllers[i].set_measured_mf(magnetic_field_measured[i])
                 pid_controllers[i].update_errors()
 
                 # Update data instances
+                magnetic_field_value_instance[i] = pid_controllers[i].get_mf_measured()
+                magnetic_field_error_instance[i] = pid_controllers[i].get_mf_measured() - pid_controllers[i].get_desired_mf()
                 current_value_instance[i] = pid_controllers[i].get_current_measured()
-                magnetic_field_value_instance[i] = magnetic_field_measured[i]
-                current_error_instance[i] = pid_controllers[i].get_reference_current() - pid_controllers[i].get_current_measured()
-                magnetic_field_error_instance[i] = desired_magnetic_field[i] - magnetic_field_measured[i]
 
             # Save the current timestamp and data
             timestamps.append(elapsed_time)
-            current_value_list.append(current_value_instance.copy())
             magnetic_field_value_list.append(magnetic_field_value_instance.copy())
-            current_error_list.append(current_error_instance.copy())
             magnetic_field_error_list.append(magnetic_field_error_instance.copy())
+            current_value_list.append(current_value_instance.copy())
 
-            # Control loop frequency (10 Hz)
-            time.sleep(0.1)
+            time.sleep(0.02)
 
     except KeyboardInterrupt:
         print("Measurement interrupted by user.")
 
     # Convert lists to NumPy arrays for easier manipulation
-    current_value_array = np.array(current_value_list)  # Shape: (num_samples, 3)
-    magnetic_field_value_array = np.array(magnetic_field_value_list)  # Shape: (num_samples, 3)
-    current_error_array = np.array(current_error_list)  # Shape: (num_samples, 3)
-    magnetic_field_error_array = np.array(magnetic_field_error_list)  # Shape: (num_samples, 3)
+    magnetic_field_value_array = np.array(magnetic_field_value_list)
+    magnetic_field_error_array = np.array(magnetic_field_error_list)
+    current_value_array = np.array(current_value_list) 
     timestamps = np.array(timestamps)
 
     DP712.set_current(0)
@@ -272,29 +259,66 @@ def main():
     plt.show()
 
 
-    # Plot current values
+    # Plot magnetic field values
     plt.figure(figsize=(12, 8))
+
+    # Magnetic Field X
     plt.subplot(3, 1, 1)
-    plt.plot(timestamps, current_value_array[:, 0], label='Current X (A)', color='r')
+    plt.plot(timestamps, magnetic_field_error_array[:, 0] * 1e6, label='Error Magnetic Field X (\u03bcT)', color='r')
+    plt.title('Error Magnetic Field X Axis')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Error Magnetic Field (\u03bcT)')
+    plt.grid()
+    plt.legend()
+
+    # Magnetic Field Y
+    plt.subplot(3, 1, 2)
+    plt.plot(timestamps, magnetic_field_error_array[:, 1] * 1e6, label='Error Magnetic Field Y (\u03bcT)', color='g')
+    plt.title('Error Magnetic Field Y Axis')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Error Magnetic Field (\u03bcT)')
+    plt.grid()
+    plt.legend()
+
+    # Magnetic Field Z
+    plt.subplot(3, 1, 3)
+    plt.plot(timestamps, magnetic_field_error_array[:, 2] * 1e6, label='Error Magnetic Field Z (\u03bcT)', color='b')
+    plt.title('Error Magnetic Field Z Axis')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Error Magnetic Field (\u03bcT)')
+    plt.grid()
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+    # Plot magnetic field values
+    plt.figure(figsize=(12, 8))
+
+    # Magnetic Field X
+    plt.subplot(3, 1, 1)
+    plt.plot(timestamps, current_value_array[:, 0], label='Current X (\u03bcT)', color='r')
     plt.title('Current X Axis')
     plt.xlabel('Time (s)')
-    plt.ylabel('Current (A)')
+    plt.ylabel('Current (\u03bcT)')
     plt.grid()
     plt.legend()
 
+    # Magnetic Field Y
     plt.subplot(3, 1, 2)
-    plt.plot(timestamps, current_value_array[:, 1], label='Current Y (A)', color='g')
+    plt.plot(timestamps, current_value_array[:, 1], label='Current Y (\u03bcT)', color='g')
     plt.title('Current Y Axis')
     plt.xlabel('Time (s)')
-    plt.ylabel('Current (A)')
+    plt.ylabel('Current (\u03bcT)')
     plt.grid()
     plt.legend()
 
+    # Magnetic Field Z
     plt.subplot(3, 1, 3)
-    plt.plot(timestamps, current_value_array[:, 2], label='Current Z (A)', color='b')
+    plt.plot(timestamps, current_value_array[:, 2], label='Current Z (\u03bcT)', color='b')
     plt.title('Current Z Axis')
     plt.xlabel('Time (s)')
-    plt.ylabel('Current (A)')
+    plt.ylabel('Current (\u03bcT)')
     plt.grid()
     plt.legend()
 
