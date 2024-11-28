@@ -96,7 +96,7 @@ def main():
     start_time = time.time()
 
     # Duration to run the loop (in seconds)
-    duration = 3
+    duration = 5
 
     print(f"Starting measurement loop for {duration} seconds...")
 
@@ -111,7 +111,7 @@ def main():
             
              # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
             for i in range(3):
-                coils[i].set_desired_magnetic_field (desired_magnetic_field[i])
+                coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
                 coils[i].set_current()
                 if coils[i].axis == 'y':
                     continue
