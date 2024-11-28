@@ -1,11 +1,11 @@
 import serial, time
 
-arduino = serial.Serial(port='/dev/ttyACM1', baudrate=115200, timeout=.1)
+arduino = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=.1)
 
 
 def sent_sign(x):
     arduino.write(bytes(x))
-    time.sleep(0.05)
+    # time.sleep(0.05)
     data = arduino.readline()
     arduino.flushOutput()
     return data
