@@ -33,7 +33,7 @@ class coil_current_control:
         g = 8 * self.length / ((self.length**2 + self.D**2) * np.sqrt(2*self.length**2 + self.D**2))
 
         self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * np.pi) / (constants.mu_0 * helmholtz_constants.wire_turns * g)
-        
+    
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
     def set_current_hardcoded(self, current):

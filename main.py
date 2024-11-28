@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     # Reset PSU to initial condition and set them ready for usage
     for i in range(3):
-        coils[i].set_current()
+        # coils[i].set_current()
         if coils[i].axis == 'y':
             continue
             # SPD3303C.set_channel('CH1')
@@ -126,35 +126,37 @@ if __name__ == "__main__":
     # value_desired = 1
     # for i in range(3):
     #     if coils[i].axis == 'y':
-    #         coils[i].set_current_hardcoded(0.350)
-    #         SPD3303C.set_channel('CH1')
-    #         time.sleep(0.1)
-    #         SPD3303C.set_current(abs(coils[i].get_current()))
-    #         time.sleep(0.1)
-    #         if coils[i].get_current() >= 0:
-    #             sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
-    #         elif coils[i].get_current() < 0:
-    #             sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
-    #     elif coils[i].axis == 'z':
-    #         coils[i].set_current_hardcoded(0.590)
-    #         SPD3303C.set_channel('CH2')
-    #         time.sleep(0.1)
-    #         SPD3303C.set_current(abs(coils[i].get_current()))
-    #         time.sleep(0.1)
-    #         if coils[i].get_current() >= 0:
-    #             sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
-    #         elif coils[i].get_current() < 0:
-    #             sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
-    #     else:
-    #         coils[i].set_current_hardcoded(0.05)
-    #         DP712.set_current(abs(coils[i].get_current()))
-    #         time.sleep(0.1)
-    #         if coils[i].get_current() >= 0:
-    #             sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
-    #         elif coils[i].get_current() < 0:
-    #             sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])    
+            # coils[i].set_current_hardcoded(0.350)
+            # SPD3303C.set_channel('CH1')
+            # time.sleep(0.1)
+            # SPD3303C.set_current(abs(coils[i].get_current()))
+            # time.sleep(0.1)
+            # if coils[i].get_current() >= 0:
+            #     sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+            # elif coils[i].get_current() < 0:
+            #     sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+        #     continue
+        # elif coils[i].axis == 'z':
+            # coils[i].set_current_hardcoded(0.590)
+            # SPD3303C.set_channel('CH2')
+            # time.sleep(0.1)
+            # SPD3303C.set_current(abs(coils[i].get_current()))
+            # time.sleep(0.1)
+            # if coils[i].get_current() >= 0:
+            #     sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+            # elif coils[i].get_current() < 0:
+            #     sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+        #     continue
+        # else:
+        #     coils[i].set_current_hardcoded(1)
+        #     DP712.set_current(abs(coils[i].get_current()))
+        #     time.sleep(0.1)
+        #     if coils[i].get_current() >= 0:
+        #         sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+        #     elif coils[i].get_current() < 0:
+        #         sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])    
 
-    # print("Successfully set current to PSUs and send current sign to rele")
+    print("Successfully set current to PSUs and send current sign to rele")
 
     # Prints magnetic field values and norm of the magnetic field
     while 1:
