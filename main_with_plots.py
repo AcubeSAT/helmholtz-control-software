@@ -31,10 +31,6 @@ def main():
 
     # Initialize magnetometer
     II2MDC = magnetometer.Magnetometer()
-    # magnetometer = PNI_magnetometer.PNI_magnetometer(port='/dev/ttyUSB0')
-    # magnetometer.run_self_test()
-    # magnetometer.start_sensor(sensor_id=2, data_rate=100)
-    # magnetometer.display_sensor_data()
 
     # Initialize PSUs
     # SPD3303C = PSU('CH1', 'SPD3303C')
@@ -43,13 +39,9 @@ def main():
     time.sleep(0.1)
     DP712.set_overcurrent_protection()
 
-    # Initialize magnetic field values from magnetometer
-
-    # Initialize magnetic field values from magnetometer
-    
+    # Initialize magnetic field values from magnetometer    
     for i in range(20):
         initial_magnetic_field = II2MDC.get_magnetic_field()
-    # initial_magnetic_field
     print(f"Initial magnetic field: {initial_magnetic_field}")
 
     coils = np.array(
@@ -96,9 +88,12 @@ def main():
     start_time = time.time()
 
     # Duration to run the loop (in seconds)
-    duration = 5
+    duration = 20
 
     print(f"Starting measurement loop for {duration} seconds...")
+
+    # Initialize storage for dynamically changing desired fields
+    desired_fields = [[], [], []]
 
     try:
         while True:
@@ -111,6 +106,20 @@ def main():
             
              # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
             for i in range(3):
+
+                # # Use this if statement if you need a more complex input signal
+                if elapsed_time > duration/4 and elapsed_time < 2*duration/4:
+                    changing_mf = -desired_magnetic_field[i]
+                elif elapsed_time > 2*duration/4 and elapsed_time < 3*duration/4:
+                    changing_mf = desired_magnetic_field[i] / 2
+                elif elapsed_time > 3*duration/4 and elapsed_time < duration:
+                    changing_mf = -desired_magnetic_field[i] / 2
+                else:
+                    changing_mf = desired_magnetic_field[i]
+                coils[i].set_desired_magnetic_field(changing_mf)
+                coils[i].set_current()
+                desired_fields[i].append(changing_mf * 1e6)
+
                 coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
                 coils[i].set_current()
                 if coils[i].axis == 'y':
@@ -184,6 +193,27 @@ def main():
 
     plt.tight_layout()
     plt.show()
+
+    # Additional Plot: Dynamic Desired Magnetic Field vs Measured Field
+    fig, axs = plt.subplots(3, 1, figsize=(12, 18))  # Three separate subplots for x, y, z axes
+
+    for i in range(3):
+        # Plot measured field
+        axs[i].plot(timestamps, measured_fields[:, i], label=f"Measured {axes[i]}-axis", color=colors[i])
+        
+        # Plot dynamically changing desired magnetic field
+        axs[i].plot(timestamps, desired_fields[i], label=f"Dynamic Desired {axes[i]}-axis", color=colors[i], linestyle='--')
+        
+        # Formatting
+        axs[i].set_xlabel('Time (s)')
+        axs[i].set_ylabel('Magnetic Field (µT)')
+        axs[i].set_title(f'Dynamic Desired vs Measured Magnetic Field - {axes[i].upper()} Axis')
+        axs[i].legend()
+        axs[i].grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == "__main__":
     main()
