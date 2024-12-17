@@ -100,12 +100,13 @@ class PID:
         return self.mf_measured
     
     def set_measured_current(self, current_measured):
+        current_measured = - current_measured
         if abs(current_measured) >= helmholtz_constants.PSU_max_current:
-            print(f"Current is: {current_measured}")
             if current_measured > 2.5:
                 current_measured = 2.5
             elif current_measured < -2.5:
                 current_measured = -2.5
+        print(f"Current is: {current_measured}")
         # print(f"Current is: {self.current_measured}")
         self.current_measured = current_measured
 
@@ -126,9 +127,9 @@ class PID:
 
     def calculate_mf(self):
 
-        self.mf_control = self.K_p * self.error_0 + self.K_d * (self.error_0 - self.error_1) + self.K_dd * (self.error_0 - 2 * self.error_1 + self.error_2)
+        self.mf_control = self.mf_control + self.K_p * self.error_0 + self.K_d * (self.error_0 - self.error_1) + self.K_dd * (self.error_0 - 2 * self.error_1 + self.error_2)
 
-        # print(f"MF is: {self.mf_control}")
+        print(f"MF is: {self.mf_control}")
         # print(f"1 is: {self.K_p * self.error_0}")
         # print(f"2 is: {self.K_p * (self.error_0 - self.error_1)}")
         # print(f"3 is: {self.K_dd * (self.error_0 - 2 * self.error_1 + self.error_2)}")
