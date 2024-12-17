@@ -42,7 +42,7 @@ def main():
     desired_magnetic_field = get_desired_magnetic_field()
 
     # Duration to run the loop (in seconds)
-    duration = 10
+    duration = 40
 
     # Initialize magnetometer
     II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
@@ -135,6 +135,9 @@ def main():
 
     timestamps.append(0)
 
+    # Initialize storage for dynamically changing desired fields
+    desired_fields = [[0], [0], [0]]
+
     try:
         while True:
 
@@ -147,9 +150,24 @@ def main():
 
             # Update PID controllers and set PSU currents
             for i in range(3):
+
+                # Use this if statement if you need a more complex input signal
+                if elapsed_time > duration/4 and elapsed_time < 2*duration/4:
+                    changing_mf = -desired_magnetic_field[i]
+                elif elapsed_time > 2*duration/4 and elapsed_time < 3*duration/4:
+                    changing_mf = desired_magnetic_field[i] / 2
+                elif elapsed_time > 3*duration/4 and elapsed_time < duration:
+                    changing_mf = -desired_magnetic_field[i] / 2
+                else:
+                    changing_mf = desired_magnetic_field[i]
+                pid_controllers[i].set_desired_mf(changing_mf)
+                pid_controllers[i].update_errors()
                 pid_controllers[i].calculate_mf()
                 pid_controllers[i].set_measured_current(input_magnetic_field_output_current(pid_controllers[i].get_mf_control(), coils_length[i]))
-                # print(pid_controllers[i].get_current_measured())
+                desired_fields[i].append(changing_mf * 1e6)
+
+                # pid_controllers[i].calculate_mf()
+                # pid_controllers[i].set_measured_current(input_magnetic_field_output_current(pid_controllers[i].get_mf_control(), coils_length[i]))
 
                 # Set PSU current and sign based on the axis
                 if coils[i].axis == 'y':
@@ -210,47 +228,75 @@ def main():
     magnetic_field_error_array = np.array(magnetic_field_error_list)
     current_value_array = np.array(current_value_list) 
     timestamps = np.array(timestamps)
+    desired_fields_array = np.array(desired_fields)
 
     DP712.set_current(0)
     time.sleep(0.1)
     DP712.set_voltage(0)
     time.sleep(0.1)
 
-    # Plot magnetic field values
-    plt.figure(figsize=(12, 8))
+    # # Plot magnetic field values
+    # plt.figure(figsize=(12, 8))
 
-    # Magnetic Field X
-    plt.subplot(3, 1, 1)
-    plt.plot(timestamps, magnetic_field_value_array[:, 0] * 1e6, label='Measured Magnetic Field X (\u03bcT)', color='r')
-    plt.axhline(y=desired_magnetic_field[0] * 1e6, color='r', linestyle='--', label='Desired Magnetic Field X (\u03bcT)')
-    plt.title('Magnetic Field X Axis')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Magnetic Field (\u03bcT)')
-    plt.grid()
-    plt.legend()
+    # # Magnetic Field X
+    # plt.subplot(3, 1, 1)
+    # plt.plot(timestamps, magnetic_field_value_array[:, 0] * 1e6, label='Measured Magnetic Field X (\u03bcT)', color='r')
+    # plt.axhline(y=desired_magnetic_field[0] * 1e6, color='r', linestyle='--', label='Desired Magnetic Field X (\u03bcT)')
+    # plt.title('Magnetic Field X Axis')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Magnetic Field (\u03bcT)')
+    # plt.grid()
+    # plt.legend()
 
-    # Magnetic Field Y
-    plt.subplot(3, 1, 2)
-    plt.plot(timestamps, magnetic_field_value_array[:, 1] * 1e6, label='Measured Magnetic Field Y (\u03bcT)', color='g')
-    plt.axhline(y=desired_magnetic_field[1] * 1e6, color='g', linestyle='--', label='Desired Magnetic Field Y (\u03bcT)')
-    plt.title('Magnetic Field Y Axis')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Magnetic Field (\u03bcT)')
-    plt.grid()
-    plt.legend()
+    # # Magnetic Field Y
+    # plt.subplot(3, 1, 2)
+    # plt.plot(timestamps, magnetic_field_value_array[:, 1] * 1e6, label='Measured Magnetic Field Y (\u03bcT)', color='g')
+    # plt.axhline(y=desired_magnetic_field[1] * 1e6, color='g', linestyle='--', label='Desired Magnetic Field Y (\u03bcT)')
+    # plt.title('Magnetic Field Y Axis')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Magnetic Field (\u03bcT)')
+    # plt.grid()
+    # plt.legend()
 
-    # Magnetic Field Z
-    plt.subplot(3, 1, 3)
-    plt.plot(timestamps, magnetic_field_value_array[:, 2] * 1e6, label='Measured Magnetic Field Z (\u03bcT)', color='b')
-    plt.axhline(y=desired_magnetic_field[2] * 1e6, color='b', linestyle='--', label='Desired Magnetic Field Z (\u03bcT)')
-    plt.title('Magnetic Field Z Axis')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Magnetic Field (\u03bcT)')
-    plt.grid()
-    plt.legend()
+    # # Magnetic Field Z
+    # plt.subplot(3, 1, 3)
+    # plt.plot(timestamps, magnetic_field_value_array[:, 2] * 1e6, label='Measured Magnetic Field Z (\u03bcT)', color='b')
+    # plt.axhline(y=desired_magnetic_field[2] * 1e6, color='b', linestyle='--', label='Desired Magnetic Field Z (\u03bcT)')
+    # plt.title('Magnetic Field Z Axis')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Magnetic Field (\u03bcT)')
+    # plt.grid()
+    # plt.legend()
+
+    # plt.tight_layout()
+    # plt.show()
+
+
+    # Plotting
+    axes = ['x', 'y', 'z']
+    colors = ['r', 'g', 'b']
+
+    # Additional Plot: Dynamic Desired Magnetic Field vs Measured Field
+    fig, axs = plt.subplots(3, 1, figsize=(12, 18))  # Three separate subplots for x, y, z axes
+
+    for i in range(3):
+        # Plot measured field
+        axs[i].plot(timestamps, magnetic_field_value_array[:, i] * 1e6, label=f"Measured {axes[i]}-axis", color=colors[i])
+        
+        # Plot dynamically changing desired magnetic field
+        axs[i].plot(timestamps, desired_fields_array[i], label=f"Dynamic Desired {axes[i]}-axis", color=colors[i], linestyle='--')
+        
+        # Formatting
+        axs[i].set_xlabel('Time (s)')
+        axs[i].set_ylabel('Magnetic Field (µT)')
+        axs[i].set_title(f'Dynamic Desired vs Measured Magnetic Field - {axes[i].upper()} Axis')
+        axs[i].legend()
+        axs[i].grid(True)
 
     plt.tight_layout()
     plt.show()
+
+
 
     # Plot magnetic field values
     plt.figure(figsize=(12, 8))
@@ -317,7 +363,6 @@ def main():
 
     plt.tight_layout()
     plt.show()
-
 
 if __name__ == "__main__":
     main()
