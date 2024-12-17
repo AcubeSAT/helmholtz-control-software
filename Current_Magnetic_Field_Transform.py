@@ -2,9 +2,10 @@
 import numpy as np
 import math
 
+from scipy import constants
 import helmholtz_constants
 
-def input_magnetic_field_output_current(magnetic_field, side_length):
+def input_magnetic_field_output_current(magnetic_field_control, side_length):
     """
         This function calculates the magnetic field created by a single current value.
 
@@ -13,18 +14,13 @@ def input_magnetic_field_output_current(magnetic_field, side_length):
 
         :return: the current that produces the magnetic field
     """
+    D = 0.9
 
-    # distance between a pair of coils
-    distance = side_length * 0.545
+    g = 8 * side_length**2 / ((side_length**2 + D**2) * np.sqrt(2*side_length**2 + D**2))
 
-    # geometrical parameter dependent on the shape of coils
-    geo_param = (8 * (side_length ** 2)) / (((side_length ** 2) + (distance ** 2)) * math.sqrt(
-        2 * (side_length ** 2) + (distance ** 2)))
-
-    current = (np.pi * magnetic_field) / (helmholtz_constants.MAG_PERM_AIR * helmholtz_constants.wire_turns * geo_param)
-
+    current = (magnetic_field_control * np.pi) / (constants.mu_0 * helmholtz_constants.wire_turns * g)
+    
     return current
-
 
 def input_current_output_magnetic_field(current, side_length):
     """
