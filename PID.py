@@ -73,10 +73,11 @@ import helmholtz_constants
 
 
 class PID:
-    def __init__(self, K_p, K_d, K_i):
+    def __init__(self, K_p, K_d, K_dd):
         self.K_p = K_p
         self.K_d = K_d
-        self.K_i = K_i
+        # self.K_i = K_i
+        self.K_dd = K_dd
         # self.errors = np.array([0, 0, 0])
         self.error_0 = 0
         self.error_1 = 0
@@ -95,20 +96,20 @@ class PID:
     def set_measured_mf(self, mf_measured):
         self.mf_measured = mf_measured
 
-    def get_mf_measured(self):
+    def get_measured_mf(self):
         return self.mf_measured
     
     def set_measured_current(self, current_measured):
         if abs(current_measured) >= helmholtz_constants.PSU_max_current:
-            print(current_measured)
-            if current_measured > 0:
+            print(f"Current is: {current_measured}")
+            if current_measured > 2.5:
                 current_measured = 2.5
-            elif current_measured < 0:
+            elif current_measured < -2.5:
                 current_measured = -2.5
         # print(f"Current is: {self.current_measured}")
         self.current_measured = current_measured
 
-    def get_current_measured(self):
+    def get_measured_current(self):
         return self.current_measured
 
     def update_errors(self):
@@ -125,10 +126,12 @@ class PID:
 
     def calculate_mf(self):
 
-        self.mf_control = self.mf_control + self.K_p * (self.error_0 - self.error_1) + \
-                  self.K_i * self.error_0 + \
-                  self.K_d * (self.error_0 - 2 * self.error_1 + self.error_2)
-        print(f"MF is: {self.mf_control}")
+        self.mf_control = self.K_p * self.error_0 + self.K_d * (self.error_0 - self.error_1) + self.K_dd * (self.error_0 - 2 * self.error_1 + self.error_2)
+
+        # print(f"MF is: {self.mf_control}")
+        # print(f"1 is: {self.K_p * self.error_0}")
+        # print(f"2 is: {self.K_p * (self.error_0 - self.error_1)}")
+        # print(f"3 is: {self.K_dd * (self.error_0 - 2 * self.error_1 + self.error_2)}")
         # print(f"0: {self.error_0}")
         # print(f"1: {self.error_1}")
         # print(f"2: {self.error_2}")
