@@ -9,7 +9,6 @@ from coil_current_control import coil_current_control
 from helmholtz_constants import initial_magnetic_field
 from magnetometer import magnetometer
 from h_bridge import sent_sign
-from scipy import constants
 from Current_Magnetic_Field_Transform import input_magnetic_field_output_current
 
 
@@ -42,25 +41,17 @@ def main():
     # Get desired magnetic field from user
     desired_magnetic_field = get_desired_magnetic_field()
 
-    # Record the start time
-    start_time = time.time()
-
     # Duration to run the loop (in seconds)
     duration = 15 # You can modify this as needed
 
     # Initialize magnetometer
     II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
-    # Alternative magnetometer initialization (commented out)
-    # magnetometer = PNI_magnetometer.PNI_magnetometer(port='/dev/ttyUSB0')
-    # magnetometer.run_self_test()
-    # magnetometer.start_sensor(sensor_id=2, data_rate=100)
-    # magnetometer.display_sensor_data()
 
     # Initialize PSUs
     # SPD3303C = PSU('CH1', 'SPD3303C')
     # time.sleep(0.1)
     DP712 = PSU("CH1", 'DP712')
-    time.sleep(0.1)
+    # time.sleep(0.1)
     DP712.set_overcurrent_protection()
 
     # Initialize magnetic field values from magnetometer
@@ -81,17 +72,16 @@ def main():
         coil_current_control('z', desired_magnetic_field[2], helmholtz_constants.initial_magnetic_field['z'])
     ])
 
-    K_p = 1
-    K_d = 1
-    K_i = 1
+    K_p = 1000 * 1e-3
+    K_d = 200 * 1e-3
+    K_dd = 40 * 1e-3
     # Initialize PID controllers for each axis
-    pid_controllers = [PID(K_p, K_d, K_i), PID(K_p, K_d, K_i), PID(K_p, K_d, K_i)]
+    pid_controllers = [PID(K_p, K_d, K_dd), PID(K_p, K_d, K_dd), PID(K_p, K_d, K_dd)]
 
     # Retrieve coil lengths or relevant parameters
     coils_length = list(helmholtz_constants.coils.values())
 
     # Initialize instances for saving data
-    current_error_instance = [0, 0, 0]
     magnetic_field_error_instance = [0, 0, 0]
     current_value_instance = [0, 0, 0]
     magnetic_field_value_instance = [0, 0, 0]
@@ -135,14 +125,19 @@ def main():
     magnetic_field_value_list.append(magnetic_field_value_instance.copy())
     magnetic_field_error_list.append(magnetic_field_error_instance.copy())
     current_value_list.append(current_value_instance.copy())
-    timestamps.append(0)
-
+    
     print("Reset PSU current and voltage")
 
     print(f"Starting measurement loop for {duration} seconds...")
 
+    # Record the start time
+    start_time = time.time()
+
+    timestamps.append(0)
+
     try:
         while True:
+
             current_time = time.time()
             elapsed_time = current_time - start_time
 
@@ -154,7 +149,7 @@ def main():
             for i in range(3):
                 pid_controllers[i].calculate_mf()
                 pid_controllers[i].set_measured_current(input_magnetic_field_output_current(pid_controllers[i].get_mf_control(), coils_length[i]))
-                print(pid_controllers[i].get_current_measured())
+                # print(pid_controllers[i].get_current_measured())
 
                 # Set PSU current and sign based on the axis
                 if coils[i].axis == 'y':
@@ -179,7 +174,7 @@ def main():
                     continue
                 else:
                     # time.sleep(0.1)
-                    DP712.set_current(abs(pid_controllers[i].get_current_measured()))
+                    DP712.set_current(abs(pid_controllers[i].get_measured_current()))
                     # time.sleep(0.1)
                     if pid_controllers[i].get_current_measured() >= 0:
                         sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
@@ -189,19 +184,15 @@ def main():
             # Get new values from magnetometer
             magnetic_field_measured = II2MDC.get_magnetic_field() * 1e-6
 
-            # Calculate norm of the magnetic field
-            # norm_magnetic_field = np.linalg.norm(magnetic_field_measured)
-            # print(f"Magnetic field: {magnetic_field_measured}   Norm: {norm_magnetic_field:.6f} T")
-
             # Update PID controllers with measured data
             for i in range(3):
                 pid_controllers[i].set_measured_mf(magnetic_field_measured[i])
                 pid_controllers[i].update_errors()
 
                 # Update data instances
-                magnetic_field_value_instance[i] = pid_controllers[i].get_mf_measured()
-                magnetic_field_error_instance[i] = pid_controllers[i].get_mf_measured() - pid_controllers[i].get_desired_mf()
-                current_value_instance[i] = pid_controllers[i].get_current_measured()
+                magnetic_field_value_instance[i] = pid_controllers[i].get_measured_mf()
+                magnetic_field_error_instance[i] = pid_controllers[i].get_measured_mf() - pid_controllers[i].get_desired_mf()
+                current_value_instance[i] = pid_controllers[i].get_measured_current()
 
             # Save the current timestamp and data
             timestamps.append(elapsed_time)
@@ -209,7 +200,7 @@ def main():
             magnetic_field_error_list.append(magnetic_field_error_instance.copy())
             current_value_list.append(current_value_instance.copy())
 
-            time.sleep(0.02)
+            time.sleep(0.01)
 
     except KeyboardInterrupt:
         print("Measurement interrupted by user.")
