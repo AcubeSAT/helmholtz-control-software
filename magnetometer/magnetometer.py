@@ -39,5 +39,5 @@ class Magnetometer:
                 self.last_magnetic_field = np.subtract(magnetic_field, self.V)
                 # self.last_magnetic_field[0] = - self.last_magnetic_field[0]
                 self.last_magnetic_field[1] = - self.last_magnetic_field[1]
-                self.last_magnetic_field[2] = - self.last_magnetic_field[2]
+                self.last_magnetic_field[2] = self.last_magnetic_field[2]
                 return self.last_magnetic_field
