@@ -34,6 +34,8 @@ class coil_current_control:
 
         self.current = ((self.desired_magnetic_field - self.initial_magnetic_field) * np.pi) / (constants.mu_0 * helmholtz_constants.wire_turns * g)
     
+        # self.current = self.current * 0.98
+
         assert abs(self.current) <= helmholtz_constants.PSU_max_current, "Current above max value"
 
         # # distance between a pair of coils

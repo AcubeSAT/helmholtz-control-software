@@ -107,7 +107,7 @@ def main():
              # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
             for i in range(3):
 
-                # # Use this if statement if you need a more complex input signal
+                # Use this if statement if you need a more complex input signal
                 if elapsed_time > duration/4 and elapsed_time < 2*duration/4:
                     changing_mf = -desired_magnetic_field[i]
                 elif elapsed_time > 2*duration/4 and elapsed_time < 3*duration/4:
@@ -120,8 +120,8 @@ def main():
                 coils[i].set_current()
                 desired_fields[i].append(changing_mf * 1e6)
 
-                coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
-                coils[i].set_current()
+                # coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+                # coils[i].set_current()
                 if coils[i].axis == 'y':
                     continue
                     # SPD3303C.set_channel('CH1')
@@ -180,19 +180,19 @@ def main():
     axes = ['x', 'y', 'z']
     colors = ['r', 'g', 'b']
 
-    fig, axs = plt.subplots(3, 1, figsize=(12, 18))  # Three separate subplots
+    # fig, axs = plt.subplots(3, 1, figsize=(12, 18))  # Three separate subplots
 
-    for i in range(3):
-        axs[i].plot(timestamps, measured_fields[:, i], label=f"Measured {axes[i]}-axis", color=colors[i])
-        axs[i].hlines(desired_magnetic_field[i] * 1e6, 0, duration, colors=colors[i], linestyles='dashed', label=f"Desired {axes[i]}-axis")
-        axs[i].set_xlabel('Time (s)')
-        axs[i].set_ylabel('Magnetic Field (µT)')
-        axs[i].set_title(f'Helmholtz Cage Magnetic Field Response - {axes[i].upper()} Axis')
-        axs[i].legend()
-        axs[i].grid(True)
+    # for i in range(3):
+    #     axs[i].plot(timestamps, measured_fields[:, i], label=f"Measured {axes[i]}-axis", color=colors[i])
+    #     axs[i].hlines(desired_magnetic_field[i] * 1e6, 0, duration, colors=colors[i], linestyles='dashed', label=f"Desired {axes[i]}-axis")
+    #     axs[i].set_xlabel('Time (s)')
+    #     axs[i].set_ylabel('Magnetic Field (µT)')
+    #     axs[i].set_title(f'Helmholtz Cage Magnetic Field Response - {axes[i].upper()} Axis')
+    #     axs[i].legend()
+    #     axs[i].grid(True)
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
 
     # Additional Plot: Dynamic Desired Magnetic Field vs Measured Field
     fig, axs = plt.subplots(3, 1, figsize=(12, 18))  # Three separate subplots for x, y, z axes
