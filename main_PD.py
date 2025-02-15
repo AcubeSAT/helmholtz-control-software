@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 
 import helmholtz_constants
 from PSU import PSU
-from PID import PID
+from PD import PD
 from coil_current_control import coil_current_control
-from helmholtz_constants import initial_magnetic_field
 from magnetometer import magnetometer
 from h_bridge import sent_sign
 from Current_Magnetic_Field_Transform import input_magnetic_field_output_current
@@ -48,10 +47,10 @@ def main():
     II2MDC = magnetometer.Magnetometer(port='/dev/ttyACM1')
 
     # Initialize PSUs
-    # SPD3303C = PSU('CH1', 'SPD3303C')
-    # time.sleep(0.1)
+    SPD3303C = PSU('CH1', 'SPD3303C')
+    time.sleep(0.1)
     DP712 = PSU("CH1", 'DP712')
-    # time.sleep(0.1)
+    time.sleep(0.1)
     DP712.set_overcurrent_protection()
 
     # Initialize magnetic field values from magnetometer
@@ -72,11 +71,16 @@ def main():
         coil_current_control('z', desired_magnetic_field[2], helmholtz_constants.initial_magnetic_field['z'])
     ])
 
-    K_p = 160 * 1e-3
-    K_d = 30 * 1e-3
-    K_dd = 2 * 1e-3
-    # Initialize PID controllers for each axis
-    pid_controllers = [PID(K_p, K_d, K_dd), PID(K_p, K_d, K_dd), PID(K_p, K_d, K_dd)]
+    # K_p = 160 * 1e-3
+    # K_d = 30 * 1e-3
+    # K_dd = 2 * 1e-3
+
+    K_p = 200 * 1e-3
+    K_d = 60 * 1e-3
+    K_dd = 0.5 * 1e-3
+
+    # Initialize PD controllers for each axis
+    PD_controllers = [PD(K_p, K_d, K_dd), PD(K_p, K_d, K_dd), PD(K_p, K_d, K_dd)]
 
     # Retrieve coil lengths or relevant parameters
     coils_length = list(helmholtz_constants.coils.values())
@@ -92,31 +96,32 @@ def main():
     for i in range(3):
         # coils[i].set_current()
         if coils[i].axis == 'y':
-            # SPD3303C.set_channel('CH1')
-            # time.sleep(0.1)
-            # SPD3303C.set_current(0)
-            # time.sleep(0.1)
-            # SPD3303C.set_voltage(30)
-            # time.sleep(0.1)
-            continue
+            SPD3303C.set_channel('CH1')
+            time.sleep(0.1)
+            SPD3303C.set_current(0)
+            time.sleep(0.1)
+            SPD3303C.set_voltage(30)
+            time.sleep(0.1)
+            # continue
         elif coils[i].axis == 'z':
-            # SPD3303C.set_channel('CH2')
-            # time.sleep(0.1)
-            # SPD3303C.set_current(0)
-            # time.sleep(0.1)
-            # SPD3303C.set_voltage(30)
-            # time.sleep(0.1)
-            continue
+            SPD3303C.set_channel('CH2')
+            time.sleep(0.1)
+            SPD3303C.set_current(0)
+            time.sleep(0.1)
+            SPD3303C.set_voltage(30)
+            time.sleep(0.1)
+            # continue
         else:
             DP712.set_current(0)
             time.sleep(0.1)
             DP712.set_voltage(30)
             time.sleep(0.1)
+            # continue
 
-        # Set reference current for PID controllers
+        # Set reference current for PD controllers
         # Assuming input_magnetic_field_output_current returns the required current
-        pid_controllers[i].set_desired_mf(desired_magnetic_field[i])
-        pid_controllers[i].update_errors()
+        PD_controllers[i].set_desired_mf(desired_magnetic_field[i])
+        PD_controllers[i].update_errors()
         magnetic_field_value_instance[i] = initial_field[i]
         magnetic_field_error_instance[i] = initial_field[i] - desired_magnetic_field[i]
         current_value_instance[i] = 0
@@ -148,7 +153,7 @@ def main():
                 print("Measurement duration completed.")
                 break
 
-            # Update PID controllers and set PSU currents
+            # Update PD controllers and set PSU currents
             for i in range(3):
 
                 # Use this if statement if you need a more complex input signal
@@ -160,57 +165,55 @@ def main():
                     changing_mf = -desired_magnetic_field[i] / 2
                 else:
                     changing_mf = desired_magnetic_field[i]
-                pid_controllers[i].set_desired_mf(changing_mf)
-                pid_controllers[i].update_errors()
-                pid_controllers[i].calculate_mf()
-                pid_controllers[i].set_measured_current(input_magnetic_field_output_current(pid_controllers[i].get_mf_control(), coils_length[i]))
+                PD_controllers[i].set_desired_mf(changing_mf)
+                PD_controllers[i].update_errors()
+                PD_controllers[i].calculate_mf()
+                PD_controllers[i].set_measured_current(input_magnetic_field_output_current(PD_controllers[i].get_mf_control(), coils_length[i]))
                 desired_fields[i].append(changing_mf * 1e6)
-
-                # pid_controllers[i].calculate_mf()
-                # pid_controllers[i].set_measured_current(input_magnetic_field_output_current(pid_controllers[i].get_mf_control(), coils_length[i]))
 
                 # Set PSU current and sign based on the axis
                 if coils[i].axis == 'y':
-                    # SPD3303C.set_channel('CH1')
-                    # # time.sleep(0.1)
-                    # SPD3303C.set_current(abs(PID[i].get_current()))
-                    # # time.sleep(0.1)
-                    # if PID[i].get_current() >= 0:
-                    #     sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
-                    # elif PID[i].get_current() < 0:
-                    #     sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
-                    continue
+                    SPD3303C.set_channel('CH1')
+                    # time.sleep(0.1)
+                    SPD3303C.set_current(abs(PD_controllers[i].get_measured_current()))
+                    # time.sleep(0.1)
+                    if PD_controllers[i].get_measured_current() >= 0:
+                        sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+                    elif PD_controllers[i].get_measured_current() < 0:
+                        sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+                    # continue
                 elif coils[i].axis == 'z':
-                    # SPD3303C.set_channel('CH2')
-                    # # time.sleep(0.1)
-                    # SPD3303C.set_current(abs(PID[i].get_current()))
-                    # # time.sleep(0.1)
-                    # if PID[i].get_current() >= 0:
-                    #     sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
-                    # elif PID[i].get_current() < 0:
-                    #     sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
-                    continue
+                    SPD3303C.set_channel('CH2')
+                    # time.sleep(0.1)
+                    SPD3303C.set_current(abs(PD_controllers[i].get_measured_current()))
+                    # time.sleep(0.1)
+                    if PD_controllers[i].get_measured_current() >= 0:
+                        sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+                    elif PD_controllers[i].get_measured_current() < 0:
+                        sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+                    # continue
                 else:
                     # time.sleep(0.1)
-                    DP712.set_current(abs(pid_controllers[i].get_measured_current()))
+                    DP712.set_current(abs(PD_controllers[i].get_measured_current()))
                     # time.sleep(0.1)
-                    if pid_controllers[i].get_measured_current() >= 0:
+                    if PD_controllers[i].get_measured_current() >= 0:
                         sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
-                    elif pid_controllers[i].get_measured_current() < 0:
+                    elif PD_controllers[i].get_measured_current() < 0:
                         sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])
+                    # continue
 
             # Get new values from magnetometer
             magnetic_field_measured = II2MDC.get_magnetic_field() * 1e-6
 
-            # Update PID controllers with measured data
+            # Update PD controllers with measured data
             for i in range(3):
-                pid_controllers[i].set_measured_mf(magnetic_field_measured[i])
-                pid_controllers[i].update_errors()
+                PD_controllers[i].set_measured_mf(magnetic_field_measured[i])
+                PD_controllers[i].update_errors()
 
                 # Update data instances
-                magnetic_field_value_instance[i] = pid_controllers[i].get_measured_mf()
-                magnetic_field_error_instance[i] = pid_controllers[i].get_measured_mf() - pid_controllers[i].get_desired_mf()
-                current_value_instance[i] = pid_controllers[i].get_measured_current()
+                magnetic_field_value_instance[i] = PD_controllers[i].get_measured_mf()
+                magnetic_field_error_instance[i] = PD_controllers[i].get_measured_mf() - PD_controllers[i].get_desired_mf()
+                current_value_instance[i] = PD_controllers[i].get_measured_current()
 
             # Save the current timestamp and data
             timestamps.append(elapsed_time)
@@ -218,7 +221,7 @@ def main():
             magnetic_field_error_list.append(magnetic_field_error_instance.copy())
             current_value_list.append(current_value_instance.copy())
 
-            time.sleep(0.01)
+            # time.sleep(0.01)
 
     except KeyboardInterrupt:
         print("Measurement interrupted by user.")
@@ -233,6 +236,20 @@ def main():
     DP712.set_current(0)
     time.sleep(0.1)
     DP712.set_voltage(0)
+    time.sleep(0.1)
+
+    SPD3303C.set_channel('CH1')
+    time.sleep(0.1)
+    SPD3303C.set_current(0)
+    time.sleep(0.1)
+    SPD3303C.set_voltage(0)
+    time.sleep(0.1)
+
+    SPD3303C.set_channel('CH2')
+    time.sleep(0.1)
+    SPD3303C.set_current(0)
+    time.sleep(0.1)
+    SPD3303C.set_voltage(0)
     time.sleep(0.1)
 
     # # Plot magnetic field values

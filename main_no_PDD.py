@@ -1,0 +1,163 @@
+import numpy as np
+import time
+
+import helmholtz_constants
+from PSU import PSU
+from coil_current_control import coil_current_control
+from helmholtz_constants import initial_magnetic_field
+from magnetometer import magnetometer
+from h_bridge import sent_sign
+
+def get_desired_magnetic_field():
+    print('Command desired magnetic field for each axis in uT: ')
+    desired_magnetic_field_uT_x, desired_magnetic_field_uT_y, desired_magnetic_field_uT_z = map(float, input().split())
+    print("Successfully got desired magnetic field")
+    return np.array([desired_magnetic_field_uT_x * 10 ** -6, desired_magnetic_field_uT_y * 10 ** -6,
+                     desired_magnetic_field_uT_z * 10 ** -6])   #converting microteslas to teslas
+
+
+def get_initial_magnetic_field(magnetometer):
+    # Needs almost five iretations in order to take the correct values from magnetometer
+    for i in range(5):
+        initial_field = magnetometer.read_sensor_data()
+    return initial_field
+
+
+if __name__ == "__main__":
+
+    desired_magnetic_field = get_desired_magnetic_field()
+    
+    # Initialize magnetometer
+    II2MDC = magnetometer.Magnetometer()
+
+    # Initialize PSUs
+    SPD3303C = PSU('CH1', 'SPD3303C')
+    time.sleep(0.1)
+    DP712 = PSU("CH1", 'DP712')
+    time.sleep(0.1)
+    DP712.set_overcurrent_protection()
+
+    # Initialize magnetic field values from magnetometer
+    time.sleep(1)
+    initial_magnetic_field = II2MDC.get_magnetic_field()
+    # initial_magnetic_field
+    print(f"Initial magnetic field: {initial_magnetic_field}")
+
+    coils = np.array(
+        [
+            coil_current_control('x', desired_magnetic_field[0], initial_magnetic_field[0] * 10 ** -6),
+            coil_current_control('y', desired_magnetic_field[1], initial_magnetic_field[1] * 10 ** -6),
+            coil_current_control('z', desired_magnetic_field[2], initial_magnetic_field[2] * 10 ** -6)
+        ])
+
+    print("Successful initialization")
+
+    # Reset PSU to initial condition and set them ready for usage
+    for i in range(3):
+        # coils[i].set_current()
+        if coils[i].axis == 'y':
+            SPD3303C.set_channel('CH1')
+            time.sleep(0.1)
+            SPD3303C.set_current(0)
+            time.sleep(0.1)
+            SPD3303C.set_voltage(30)
+            time.sleep(0.1)
+        elif coils[i].axis == 'z':
+            SPD3303C.set_channel('CH2')
+            time.sleep(0.1)
+            SPD3303C.set_current(0)
+            time.sleep(0.1)
+            SPD3303C.set_voltage(30)
+            time.sleep(0.1)
+        else:
+            time.sleep(0.1)
+            DP712.set_current(0)
+            time.sleep(0.1)
+            DP712.set_voltage(30)
+            time.sleep(0.1)
+
+    print("Reset PSU current and voltage")
+
+    # Sets the desired current values to PSUs, based on the desired magnetic field and sends the desired commands to rele
+    for i in range(3):
+        coils[i].set_desired_magnetic_field(desired_magnetic_field[i])
+        coils[i].set_current()
+        print(coils[i].get_current())
+        if coils[i].axis == 'y':
+            SPD3303C.set_channel('CH1')
+            time.sleep(0.1)
+            SPD3303C.set_current(abs(coils[i].get_current()))
+            time.sleep(0.1)
+            if coils[i].get_current() >= 0:
+                sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+            elif coils[i].get_current() < 0:
+                sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+        elif coils[i].axis == 'z':
+            SPD3303C.set_channel('CH2')
+            time.sleep(0.1)
+            SPD3303C.set_current(abs(coils[i].get_current()))
+            time.sleep(0.1)
+            if coils[i].get_current() >= 0:
+                sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+            elif coils[i].get_current() < 0:
+                sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+        else:
+            time.sleep(0.1)
+            DP712.set_current(abs(coils[i].get_current()))
+            time.sleep(0.1)
+            if coils[i].get_current() >= 0:
+                sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+            elif coils[i].get_current() < 0:
+                sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])    
+
+    print("Successfully set current to PSUs and send current sign to rele")
+
+    # Sets the desired current values to PSUs hardcoded, without transormation using magnetic field and sends the desired commands to rele
+    # value_zero = 0
+    # value_desired = 1
+    # for i in range(3):
+    #     if coils[i].axis == 'y':
+            # coils[i].set_current_hardcoded(0.350)
+            # SPD3303C.set_channel('CH1')
+            # time.sleep(0.1)
+            # SPD3303C.set_current(abs(coils[i].get_current()))
+            # time.sleep(0.1)
+            # if coils[i].get_current() >= 0:
+            #     sent_sign.sent_sign(helmholtz_constants.y_sign['positive'])
+            # elif coils[i].get_current() < 0:
+            #     sent_sign.sent_sign(helmholtz_constants.y_sign['negative'])
+        #     continue
+        # elif coils[i].axis == 'z':
+            # coils[i].set_current_hardcoded(0.590)
+            # SPD3303C.set_channel('CH2')
+            # time.sleep(0.1)
+            # SPD3303C.set_current(abs(coils[i].get_current()))
+            # time.sleep(0.1)
+            # if coils[i].get_current() >= 0:
+            #     sent_sign.sent_sign(helmholtz_constants.z_sign['positive'])
+            # elif coils[i].get_current() < 0:
+            #     sent_sign.sent_sign(helmholtz_constants.z_sign['negative'])
+        #     continue
+        # else:
+        #     coils[i].set_current_hardcoded(1)
+        #     DP712.set_current(abs(coils[i].get_current()))
+        #     time.sleep(0.1)
+        #     if coils[i].get_current() >= 0:
+        #         sent_sign.sent_sign(helmholtz_constants.x_sign['positive'])
+        #     elif coils[i].get_current() < 0:
+        #         sent_sign.sent_sign(helmholtz_constants.x_sign['negative'])    
+
+    print("Successfully set current to PSUs and send current sign to rele")
+
+    # Prints magnetic field values and norm of the magnetic field
+    while 1:
+        # magnetic_field = PNI_magnetometer.read_sensor_data()
+        # norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
+        # print(f"Magnetic field: {PNI_magnetometer.read_sensor_data()} Norm: {norm}")
+    
+        # Get the norm of the initial field
+        magnetic_field = II2MDC.get_magnetic_field()
+        norm = np.sqrt(magnetic_field[0] ** 2 + magnetic_field[1] ** 2 + magnetic_field[2] ** 2)
+        print(f"Magnetic field: {magnetic_field} Norm: {norm}")
+        time.sleep(0.1)
+

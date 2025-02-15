@@ -19,7 +19,8 @@ class PSU:
             if model == 'DP712':
                 psu = 'ASRL/dev/ttyUSB0::INSTR'
             else:
-                psu = 'USB0::1155::30016::SPD3EEEC6R0509::0::INSTR'
+                # psu = 'USB0::1155::30016::SPD3EEEC6R0509::0::INSTR' # old PSU
+                psu = 'USB0::62700::5168::SPD3EGGC8R0269::0::INSTR' # new PSU
         else:
             print("There are not connected devices")
 
